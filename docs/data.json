@@ -23,7 +23,9 @@
       "tools": "Python, TypeScript, Docker, WSL2, MariaDB, MongoDB, Caddy, Cloudflare, C#",
       "links": "GitHub | https://github.com/nyx-ulrix/deployer",
       "text": "Built an open-source, self-hosted backend and deployment platform (similar to Supabase + Vercel) that runs on an ordinary Windows PC with as little as 4 GB RAM, installed via a single command or a one-click installer.\nImplemented user authentication with email/password, Google and GitHub OAuth, and account linking, plus role-based access control (owner, admin, developer, viewer), single-use invite links, and an audit log for team collaboration.\nProvisioned managed SQL (MariaDB) and NoSQL (MongoDB) databases per project with restricted database users, and support for external databases including MySQL, PostgreSQL, and MongoDB Atlas.\nDeveloped a schema viewer that renders ER diagrams in crow's-foot notation across SQL and NoSQL sources, with convention checks, cross-database links, and DDL export (.sql and mongosh scripts).\nBuilt a browser-based data browser and query console (SQL and mongosh) with role-based read-only enforcement for viewers.\nDesigned a project-scoped REST data API with API keys (read-only anon and read/write service keys) usable from curl, JavaScript, and Python.\nImplemented GitHub push-to-deploy: repository webhooks, automatic build detection (static, Node.js, Python, Dockerfile), zero-downtime deployments behind a Caddy reverse proxy, rollbacks, and build and runtime logs.\nAdded encrypted backups, point-in-time recovery, safety snapshots, and full encrypted export and import for migrating installations between devices.\nEnabled secure remote access and custom domains through automated Cloudflare Tunnel and DNS configuration, with no port forwarding required, plus support for attaching spare PCs as host devices.\nWrote a PowerShell installer and a C# WinForms setup application (.NET Framework 4.8) that checks system requirements, configures Docker Engine inside WSL2, generates secrets locally, and supports dry-run mode; set up CI releases publishing container images to GitHub Container Registry.\nAuthored an AI-agent skill enabling coding agents to back websites with Deployer, and wrote pytest API tests and technical documentation.",
-      "images": []
+      "images": [
+        "deployer.webp"
+      ]
     },
     {
       "title": "Fitz",
@@ -67,7 +69,9 @@
       "tools": "TypeScript, React, Electron, Google Gemini, Node.js",
       "links": "GitHub | https://github.com/nyx-ulrix/readytalent-scraper",
       "text": "Built a Windows desktop application that scrapes job listings (title, company, salary, required skills, description) from SIT's ReadyTalent career portal and stores them locally.\nAutomated sign-in through SIT's ADFS single sign-on in a hidden Electron window, calling the portal's own job API with incremental scraping of only new jobs; encrypted saved credentials with Windows DPAPI.\nIntegrated Google Gemini to extract ATS keywords from job descriptions and generate tailored, ATS-optimised A4 resumes and cover letters, with three printable templates and PDF export.\nServed the app over a local network server so tablets (Android/iPad) can use it as a Progressive Web App on the same Wi-Fi; wrote a scraper self-test against a mock portal API.",
-      "images": []
+      "images": [
+        "autoresume.webp"
+      ]
     },
     {
       "title": "Thermal Printer Label Editor",
