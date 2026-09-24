@@ -149,8 +149,7 @@ body:not(.full) #stage { cursor: zoom-in }
   .site { display: flex; flex-direction: column; height: auto; min-height: 100dvh; overflow: auto }
   .site .panel { flex: none }
   #sphere-panel { height: 62vh }
-  #term { order: 1; height: 75vh }
-  #about { order: 2 }
+  #term { height: 75vh }
   #stage { touch-action: pan-y }
   .sheet-top { grid-template-columns: 1fr }
   .win { left: 8px !important; top: 8px !important; max-height: calc(100dvh - 16px) }
