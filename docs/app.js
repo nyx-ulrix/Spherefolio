@@ -242,21 +242,17 @@ function openProject(i) {
   const p = P[i], im = p.images || [];
   const head = `<div><h2>${esc(p.title)}</h2><p class="muted">${esc(p.tagline)}</p>
     <dl class="stats">${stat('Year', p.year)}${stat('Type', p.type)}${stat('Slot', `#${String(i + 1).padStart(2, '0')}`)}</dl></div>`;
-  // Media on top as a strip of large images (full resolution, up to ~520px tall) that scrolls sideways when there are
-  // several; click any one to open it full size in the viewer (‹ › to flip).
+  // Media on top: all visible at once and large (~half the screen), no scrolling; click any item to open it full size
+  // in the viewer (‹ › to flip). one = single item; pair = side by side; feat = cover large left, the rest stacked beside it.
+  const n = im.length, big = j => n <= 2 || j === 0; // full-res where the tile is large; 480px thumbs for the stacked ones
   const tile = (f, j) => `<button class="mthumb" data-v="${j}" aria-label="View ${isVid(f) ? 'video' : 'image'} ${j + 1}">`
-    + `<img src="${isVid(f) ? thumb(f) : src(f)}" alt="">${isVid(f) ? '<i class="badge">▶</i>' : ''}</button>`;
-  const w = openWin('win-project', p.title, `
-    ${im.length ? `<div class="strip">${im.map(tile).join('')}</div>${head}` : `<div class="sheet-top"><div class="portrait">${card(p, i)}</div>${head}</div>`}
+    + `<img src="${big(j) && !isVid(f) ? src(f) : thumb(f)}" alt="">${isVid(f) ? '<i class="badge">▶</i>' : ''}</button>`;
+  const grid = n === 1 ? '<div class="mgrid one">' : n === 2 ? '<div class="mgrid pair">'
+    : `<div class="mgrid feat" style="--cols:${Math.ceil((n - 1) / 2)}">`;
+  openWin('win-project', p.title, `
+    ${n ? `${grid}${im.map(tile).join('')}</div>${head}` : `<div class="sheet-top"><div class="portrait">${card(p, i)}</div>${head}</div>`}
     ${chips(p.tools)}${bullets(p.text)}${linkBtns(p.links)}
     <div class="viewer" hidden><button class="vx btn" aria-label="Back to project">✕</button><button class="vnav" data-step="-1" aria-label="Previous">‹</button><div class="vmedia"></div><button class="vnav" data-step="1" aria-label="Next">›</button></div>`);
-  // A mouse wheel over the strip scrolls it sideways, until it reaches an end (then the popup scrolls as normal).
-  $('.strip', w)?.addEventListener('wheel', e => {
-    const s = e.currentTarget, dy = e.deltaY;
-    if (Math.abs(dy) <= Math.abs(e.deltaX) || (dy > 0 ? s.scrollLeft + s.clientWidth >= s.scrollWidth - 1 : s.scrollLeft <= 0)) return;
-    s.scrollLeft += dy;
-    e.preventDefault();
-  }, { passive: false });
 }
 function view(j) {
   const im = P[openP].images, v = $('#win-project .viewer');

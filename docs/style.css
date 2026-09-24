@@ -152,15 +152,20 @@ body:not(.full) #stage { cursor: zoom-in }
 #about .entry > b { font-size: 14px }
 
 /* Project popup: one fixed size, centred (JS). Media grid on top; the viewer shows one item full size over the body. */
-.win { position: fixed; z-index: 20; display: flex; flex-direction: column; width: min(820px, calc(100vw - 16px)); height: min(760px, calc(100dvh - 32px)); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 12px 48px var(--shadow); backdrop-filter: blur(8px) }
+.win { position: fixed; z-index: 20; display: flex; flex-direction: column; width: min(1000px, calc(100vw - 16px)); height: min(820px, calc(100dvh - 32px)); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 12px 48px var(--shadow); backdrop-filter: blur(8px) }
 .win > header { border-radius: 6px 6px 0 0; cursor: move; touch-action: none }
 .x { padding: 0 6px; background: none; border: 0; color: var(--muted); font-size: 15px }
 .x:hover { color: var(--accent) }
 .win .body { flex: 1; min-height: 0; overflow: auto; padding: 14px 16px 16px }
-/* Media strip: every image large (natural shape, up to ~520px tall), scrolling sideways when there are several. */
-.strip { display: flex; gap: 10px; margin: 0 -16px 14px; padding: 0 16px 8px; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding: 0 16px }
-.mthumb { position: relative; flex: none; max-width: 100%; height: min(56dvh, 520px); padding: 0; overflow: hidden; background: var(--shade); border: 1px solid var(--line); border-radius: 6px; scroll-snap-align: start; cursor: zoom-in }
-.mthumb img { display: block; width: auto; max-width: 100%; height: 100%; object-fit: contain; transition: scale .2s ease }
+/* Media: all of a project's images visible at once and big (about half the screen tall), no scrolling. */
+.mgrid { display: grid; gap: 8px; height: clamp(260px, 50dvh, 480px); margin-bottom: 14px }
+.mgrid.one { grid-template-columns: 1fr }
+.mgrid.pair { grid-template-columns: 1fr 1fr }
+.mgrid.feat { grid-template: 1fr 1fr / 2fr repeat(var(--cols), 1fr) }
+.mgrid.feat .mthumb:first-child { grid-row: span 2 }
+.mthumb { position: relative; min-width: 0; min-height: 0; padding: 0; overflow: hidden; background: var(--shade); border: 1px solid var(--line); border-radius: 6px; cursor: zoom-in }
+.mthumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: scale .2s ease }
+.mgrid.one .mthumb img { object-fit: contain }
 .mthumb:hover, .mthumb:focus-visible { border-color: var(--accent); outline: none }
 .mthumb:hover img { scale: 1.03 }
 .badge { position: absolute; left: 6px; top: 4px; color: #fff; font-size: 13px; font-style: normal; text-shadow: 0 0 3px #000, 0 0 3px #000 }
@@ -234,4 +239,9 @@ body:not(.full) #stage { cursor: zoom-in }
   .sheet-top { grid-template-columns: 1fr }
   #term .body { font-size: 13px }
   .sg-row > span { flex-basis: 100% }
+  /* Phones: cover full width on top, the rest in two columns below (pairs stack); still no scrolling within the images. */
+  .mgrid.pair, .mgrid.feat { height: auto; grid-template: none / 1fr 1fr }
+  .mgrid.pair { grid-template-columns: 1fr }
+  .mgrid.pair .mthumb, .mgrid.feat .mthumb { aspect-ratio: 16 / 10 }
+  .mgrid.feat .mthumb:first-child { grid-row: auto; grid-column: 1 / -1 }
 }
