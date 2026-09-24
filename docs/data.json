@@ -48,7 +48,8 @@
       "links": "GitHub | https://github.com/nyx-ulrix/YahboomProject",
       "text": "Developed a monorepo robotics stack comprising a React and Vite web dashboard, a Flask backend, and Raspberry Pi scripts for a Yahboom robot car.\nImplemented real-time camera streaming over WebRTC and MQTT frame relay, and an MQTT-to-ROS 2 bridge for movement commands, autonomous exploration, and drive status.\nBuilt a LiDAR-based obstacle safety node and LiDAR grid and SLAM views in the dashboard.\nImplemented and compared two object detection pipelines for emergency stopping: server-side YOLOv8 (Ultralytics) inference on live frames, and a Cache Aware Offloading (CAO) pipeline using MobileCLIP-S1 vision transformer embeddings on the Pi with image-to-image cosine similarity matching against a reference library.\nDesigned a Stop-Time Test Bench with configurable detection modes, similarity thresholds, embedding sizes (512/1024/2048 B), simulated network hop delay, and CSV export for benchmarking edge versus cloud inference latency.\nBuilt a customisable widget-based dashboard with layout templates, an event log, and a REST API for video, VIT embeddings, YOLO, and test bench control.",
       "images": [
-        "yahboom-robot.webp"
+        "yahboom-robot.webp",
+        "yahboom-run.mp4"
       ]
     },
     {
@@ -59,7 +60,11 @@
       "tools": "React, TypeScript, Vite, Electron, SQLite, IndexedDB, OpenAI, Gmail API, Tailwind CSS",
       "links": "GitHub | https://github.com/nyx-ulrix/DailyGrind",
       "text": "Built a fully functioning AI-integrated web application designed to reduce intern handholding by automatically breaking down tasks and guiding new hires through onboarding independently.\nDeveloped a local-first productivity workspace with an overview dashboard, priorities view, unified message inbox, and settings, using React 18, React Router, and React Context for state management.\nImplemented browser persistence with Dexie (IndexedDB) for tasks, channels, messages, calendar, and kanban data, and a desktop build using Electron with a local SQLite database (better-sqlite3) and an IPC bridge.\nIntegrated Gmail, Telegram, and OpenAI in the Electron main process to ingest messages and triage them into prioritised, actionable tasks.\nBuilt drag-and-drop task management with dnd-kit and an accessible UI with Radix UI, shadcn-style components, and Tailwind CSS 4; packaged a Windows installer released on GitHub.",
-      "images": []
+      "images": [
+        "daily-grind.webp",
+        "daily-grind-breakdown.webp",
+        "daily-grind-timeline.webp"
+      ]
     },
     {
       "title": "AutoResume",
