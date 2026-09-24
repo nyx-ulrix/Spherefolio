@@ -199,7 +199,9 @@ body:not(.full) #stage { cursor: zoom-in }
 #term-out > div { white-space: pre-wrap; overflow-wrap: anywhere }
 #term-out > .pre { white-space: pre; overflow-x: auto }
 #term a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted; cursor: pointer }
-#term img { height: 72px; margin: 6px 6px 0 0; border: 1px solid var(--line); border-radius: 3px; vertical-align: top }
+#term img { height: 140px; margin: 8px 8px 0 0; border: 1px solid var(--line); border-radius: 4px; vertical-align: top }
+#term .trow:hover { background: var(--raise) }
+.tprev { position: fixed; z-index: 12; width: 240px; height: 180px; object-fit: cover; background: var(--shade); border: 1px solid var(--accent); border-radius: 6px; box-shadow: 0 10px 34px var(--shadow); pointer-events: none }
 #term .tthumb { display: inline-block; width: 34px; height: 24px; margin: 1px 10px 1px 0; vertical-align: middle; background: var(--raise); border: 1px solid var(--line); border-radius: 3px; object-fit: cover }
 #term img.tthumb { cursor: pointer }
 #term .tthumb.blank { visibility: hidden }

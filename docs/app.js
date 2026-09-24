@@ -256,7 +256,7 @@ const tthumb = i => P[i].images?.length ? `<img class="tthumb" src="${thumb(P[i]
 function table(ids, note) {
   const tw = Math.max(8, ...P.map(p => p.title.length)) + 2, yw = Math.max(5, ...P.map(p => String(p.type).length)) + 2;
   print(`<span class="tthumb blank"></span><span class="dim">#   ${pad('PROJECT', tw)}${pad('TYPE', yw)}YEAR</span>\n`
-    + ids.map(i => `${tthumb(i)}${String(i + 1).padStart(2, '0')}  ${pad(P[i].title, tw, `<a data-open="${i}">${esc(P[i].title)}</a>`)}${pad(P[i].type, yw)}${esc(P[i].year)}`).join('\n')
+    + ids.map(i => `<span class="trow"${P[i].images?.length ? ` data-img="${thumb(P[i].images[0])}"` : ''}>${tthumb(i)}${String(i + 1).padStart(2, '0')}  ${pad(P[i].title, tw, `<a data-open="${i}">${esc(P[i].title)}</a>`)}${pad(P[i].type, yw)}${esc(P[i].year)}</span>`).join('\n')
     + `\n<span class="dim">  ${note} · </span>${cmd('open')}<span class="dim"> &lt;n&gt; for details, or click a card on the sphere</span>`, 'pre');
 }
 const cmds = {
@@ -340,6 +340,33 @@ tin.onkeydown = e => {
 };
 tbody.onclick = e => { if (!getSelection().toString() && !e.target.closest('a')) tin.focus(); };
 
+// Clicked commands (links, suggestions, project names) type themselves into the prompt first, so visitors learn them.
+let typing = false;
+async function typeRun(line) {
+  if (typing) return;
+  typing = true;
+  for (let k = 1; k <= line.length; k++) { tin.value = line.slice(0, k); await new Promise(r => setTimeout(r, 22)); }
+  await new Promise(r => setTimeout(r, 160));
+  tin.value = '';
+  typing = false;
+  run(line);
+}
+
+// Hovering a project row in ls/stack pops a large preview of its cover beside the row (fixed, so nothing gets clipped).
+const tprev = Object.assign(document.createElement('img'), { className: 'tprev', alt: '', hidden: true });
+document.body.append(tprev);
+out.addEventListener('pointerover', e => {
+  const row = e.target.closest('.trow[data-img]');
+  if (!row) { tprev.hidden = true; return; }
+  const r = row.getBoundingClientRect(), box = tbody.getBoundingClientRect();
+  tprev.src = row.dataset.img;
+  tprev.style.left = `${Math.max(box.left + 8, Math.min(r.right + 16, box.right - 256))}px`;
+  tprev.style.top = `${Math.max(box.top + 8, Math.min(r.top + r.height / 2 - 90, box.bottom - 188))}px`;
+  tprev.hidden = false;
+});
+out.addEventListener('pointerleave', () => { tprev.hidden = true; });
+tbody.addEventListener('scroll', () => { tprev.hidden = true; });
+
 // ---- Global input
 document.addEventListener('click', e => {
   if (e.target.matches('.viewer, .vmedia')) return closeViewer(); // click the backdrop around full-size media
@@ -349,8 +376,8 @@ document.addEventListener('click', e => {
   if (t.id === 'full') setFull(!isFull());
   else if (t.id === 'theme') setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
   else if (d.sheet) openProject(+d.sheet);
-  else if (d.open) run(`open ${+d.open + 1}`);
-  else if (d.cmd) run(d.cmd);
+  else if (d.open) typeRun(`open ${+d.open + 1}`);
+  else if (d.cmd) typeRun(d.cmd);
   else if (d.v) view(+d.v);
   else if (d.step) view(+$('#win-project .viewer').dataset.i + +d.step);
   else if (t.matches('.vx')) closeViewer();
