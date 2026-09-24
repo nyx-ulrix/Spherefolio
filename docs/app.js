@@ -155,18 +155,22 @@ requestAnimationFrame(tick);
 
 // ---- Project sheets: draggable Foundry-style windows, Esc closes the top one.
 let zTop = 20;
-function openWin(id, title, html, wide) {
+// Popups have one fixed size (CSS) and always open dead centre; still draggable by the header afterwards.
+const center = w => {
+  w.style.left = `${Math.max(0, (innerWidth - w.offsetWidth) / 2)}px`;
+  w.style.top = `${Math.max(0, (innerHeight - w.offsetHeight) / 2)}px`;
+};
+addEventListener('resize', () => document.querySelectorAll('.win').forEach(center));
+function openWin(id, title, html) {
   let w = document.getElementById(id);
   if (!w) {
     w = document.createElement('section');
-    w.className = wide ? 'win wide' : 'win'; // set before measuring so the window centres at its real width
+    w.className = 'win';
     w.id = id;
     w.setAttribute('role', 'dialog');
     w.innerHTML = '<header><b></b><button class="x" aria-label="Close">✕</button></header><div class="body"></div>';
     document.body.append(w);
     const h = $('header', w);
-    w.style.left = `${Math.max(8, (innerWidth - w.offsetWidth) / 2)}px`;
-    w.style.top = `${Math.max(8, innerHeight * .08)}px`;
     h.onpointerdown = e => {
       if (e.target.closest('button')) return;
       const ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
@@ -184,6 +188,7 @@ function openWin(id, title, html, wide) {
   $('header b', w).textContent = title;
   $('.body', w).innerHTML = html;
   $('.body', w).scrollTop = 0;
+  center(w);
 }
 
 // Details close when you interact outside them, click another project, or rest (350 ms) on another visible
@@ -206,12 +211,12 @@ function openProject(i) {
   const p = P[i], im = p.images || [];
   const head = `<div><h2>${esc(p.title)}</h2><p class="muted">${esc(p.tagline)}</p>
     <dl class="stats">${stat('Year', p.year)}${stat('Type', p.type)}${stat('Slot', `#${String(i + 1).padStart(2, '0')}`)}</dl></div>`;
-  // With media: a wider window and the full, uncropped image/video on top. Without: the small card beside the title.
+  // With media: the full, uncropped image/video on top. Without: the small card beside the title.
   openWin('win-project', p.title, `
     ${im.length ? `<div class="hero">${media(im[0], true)}</div>${head}` : `<div class="sheet-top"><div class="portrait">${card(p, i)}</div>${head}</div>`}
     ${chips(p.tools)}${bullets(p.text)}
     ${im.length > 1 ? `<div class="gallery">${im.map((f, j) => `<button data-f="${esc(f)}" aria-label="Show ${isVid(f) ? 'video' : 'image'} ${j + 1}"><img src="${thumb(f)}" alt="">${isVid(f) ? '<i class="badge">▶</i>' : ''}</button>`).join('')}</div>` : ''}
-    ${linkBtns(p.links)}`, im.length > 0);
+    ${linkBtns(p.links)}`);
 }
 
 // ---- Terminal
