@@ -314,6 +314,12 @@
       "name": "Experience",
       "items": [
         {
+          "title": "Forward Deployed Engineer (Part-time)",
+          "org": "HiLite",
+          "when": "2026 – Present",
+          "text": "As a Forward Deployed Engineer, I partner directly with business clients to uncover their operational challenges and turn them into custom-built digital solutions—spanning web applications, AI-driven chatbots, automated workflows, and customer-facing platforms.\nDesign and build backend systems, integrating APIs and third-party services to power end-to-end solutions.\nDevelop and maintain AI-powered applications and automated workflows tailored to client needs.\nOversee database architecture and connectivity, alongside rigorous testing, debugging, and troubleshooting.\nCollaborate closely with clients to capture requirements and convert business objectives into actionable technical designs.\nLead deployment efforts, guide client onboarding, and deliver hands-on user training.\nIterate on live systems post-launch, driving improvements in performance, reliability, and overall user experience."
+        },
+        {
           "title": "Web Developer",
           "org": "Mighty Velo · Singapore",
           "when": "Jan 2024 – Feb 2025",
