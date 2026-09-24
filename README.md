@@ -1,6 +1,6 @@
 # Spherefolio
 
-My portfolio as one screen: a draggable 3D sphere of framed project pictures (top left), About me with links and skills (top right), and a terminal for people who'd rather type (bottom). The UI is styled after Foundry VTT. It's a static site on GitHub Pages (free), and a small local dashboard edits it.
+My portfolio as one screen: a draggable 3D sphere of project cards (top left, click for fullscreen), a terminal with suggestions below it, and About me down the right. The UI is styled after Foundry VTT. It's a static site on GitHub Pages (free), and a small local dashboard edits it.
 
 **Live:** https://nyx-ulrix.github.io/Spherefolio/
 
@@ -8,9 +8,9 @@ My portfolio as one screen: a draggable 3D sphere of framed project pictures (to
 
 Double-click **`Spherefolio.cmd`** (or run `node server.js`). The GM dashboard opens at http://127.0.0.1:4000/admin/.
 
-- **Projects** (up to 50): add, reorder, edit, and drop images. The first image is the cover. Images are resized and converted to WebP in the browser.
-- **Site & UI**: name, headline, summary, contact links, accent colour, sphere size, tile fill, and spin.
-- **Resume & jobs**: sections and entries. Each section becomes an About-me tab and a terminal command.
+- **Projects** (up to 50): add, reorder, edit, and drop images or short videos (MP4/WebM, up to 50 MB). The first one replaces the card on the sphere. Images are resized and converted to WebP in the browser.
+- **Site & UI**: name, headline, summary, contact links, accent + secondary colour, sphere size, tile fill, and spin.
+- **Resume & jobs**: sections and entries. Each section shows in About me and becomes a terminal command.
 - **Publish**: commits `docs/` and pushes. GitHub Pages redeploys in about a minute.
 
 Everything saves to `docs/data.json` and `docs/uploads/`. Only `docs/` is served; the dashboard and `server.js` never run online.

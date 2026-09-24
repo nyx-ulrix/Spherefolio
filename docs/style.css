@@ -5,7 +5,7 @@
   --panel: rgba(13, 12, 20, .93);
   --raise: rgba(255, 255, 255, .045);
   --line: rgba(239, 230, 216, .14);
-  --gold: #c9a060;
+  --accent2: #b79cff;
   --text: #efe6d8;
   --muted: #9c9282;
   --glow: color-mix(in srgb, var(--accent) 55%, transparent);
@@ -18,7 +18,9 @@
 html, body { margin: 0; height: 100% }
 body {
   overflow: hidden; color: var(--text); font: 15px/1.5 var(--font);
-  background: radial-gradient(ellipse at 30% 30%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 60%), var(--bg);
+  background:
+    radial-gradient(ellipse at 20% 20%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
+    radial-gradient(ellipse at 85% 90%, color-mix(in srgb, var(--accent2) 8%, transparent), transparent 60%), var(--bg);
 }
 a { color: var(--accent) }
 button, input, textarea { font: inherit; color: inherit }
@@ -34,17 +36,20 @@ input[type=color] { height: 34px; cursor: pointer }
 .hl { color: var(--accent) }
 .kicker { color: var(--accent); font: 11px var(--mono); letter-spacing: .22em; text-transform: uppercase }
 h2 { margin: 0; font-size: 22px; font-weight: 600; line-height: 1.15 }
-h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--line); color: var(--gold); font: 11px var(--mono); letter-spacing: .14em; text-transform: uppercase }
+h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--line); color: var(--accent2); font: 11px var(--mono); letter-spacing: .14em; text-transform: uppercase }
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; background: var(--raise); border: 1px solid var(--line); border-radius: 4px; color: var(--text); font-size: 13px; text-decoration: none }
 .btn:hover:not(:disabled), .btn:focus-visible { border-color: var(--accent); box-shadow: 0 0 8px var(--glow); outline: none }
 .btn.danger:hover:not(:disabled) { border-color: #e0413a; box-shadow: 0 0 8px #e0413a88 }
 
 /* Layout: sphere top-left, About me top-right, terminal across the bottom. */
-.site { display: grid; grid-template: minmax(0, 1.5fr) minmax(0, 1fr) / minmax(0, 1.65fr) minmax(300px, 1fr); gap: 10px; height: 100dvh; padding: 10px }
-.site #term { grid-column: 1 / -1 }
+/* Sphere top-left (~30% of the screen, click → fullscreen), terminal below it, About me down the whole right side. */
+.site { display: grid; grid-template: "sphere about" minmax(0, 43fr) "term about" minmax(0, 57fr) / minmax(0, 1fr) minmax(340px, 30%); gap: 10px; height: 100dvh; padding: 10px }
+#sphere-panel { grid-area: sphere }
+#about { grid-area: about }
+#term { grid-area: term }
 .panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 30px #0009 }
 .panel > header, .win > header { display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 6px 8px 6px 12px; background: rgba(0, 0, 0, .45); border-bottom: 1px solid var(--line); user-select: none }
-.panel > header b, .win > header b { flex: 1; overflow: hidden; font-size: 13px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis }
+.panel > header b, .win > header b { flex: 1; overflow: hidden; color: var(--accent2); font-size: 13px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis }
 .panel > header .btn { padding: 1px 8px; font-size: 11px }
 .panel > .body { flex: 1; min-height: 0; overflow: auto; padding: 14px 16px 16px }
 #status { font: 11px var(--mono); letter-spacing: .06em; white-space: nowrap }
@@ -58,20 +63,22 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 #stage:active { cursor: grabbing }
 #sphere { position: relative; width: 0; height: 0; transform-style: preserve-3d; will-change: transform }
 
-/* Tiles are picture frames: gilded moulding, dark mat, the picture (upload or generated landscape), brass title plate. */
-.tile { position: absolute; left: 0; top: 0; width: var(--w); height: var(--h); margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2); padding: .34em; border: 0; border-radius: 2px; color: inherit; font-size: calc(var(--w) * .085); cursor: pointer;
-  background: linear-gradient(135deg, #7a5c30, #3b2b15 22%, #c9a060 48%, #4a3719 72%, #8e6d3a);
-  box-shadow: inset 0 0 0 1px #0009, inset 0 0 0 .1em #ffe3a633, 0 .15em .5em #000a }
-.tile:hover, .tile:focus-visible { outline: 1px solid var(--accent); box-shadow: inset 0 0 0 1px #0009, 0 0 1.4em var(--glow) }
-.pic { display: block; width: 100%; height: 100%; padding: .24em; background: #16121c; box-shadow: inset 0 0 0 1px #000c, inset 0 .2em .5em #000c }
-.pic > *, .portrait > *, .mini > * { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none }
-.plate { position: absolute; left: 50%; bottom: .02em; max-width: 76%; overflow: hidden; padding: 0 .6em; transform: translateX(-50%); background: linear-gradient(#ecd49a, #a8844a); border-radius: 1px; box-shadow: 0 1px 2px #000b; color: #221708; font: 600 .62em/1.5 var(--font); white-space: nowrap; text-overflow: ellipsis }
-.art { background:
-    radial-gradient(circle at var(--sx) 30%, hsl(var(--hue) 95% 78%) 0 6%, hsl(var(--hue) 95% 65% / .35) 7% 13%, transparent 14%),
-    linear-gradient(166deg, transparent 57%, hsl(var(--hue) 35% 15%) 57.4%),
-    linear-gradient(196deg, transparent 67%, hsl(var(--hue) 45% 9%) 67.4%),
-    linear-gradient(hsl(var(--hue) 55% 44%), hsl(calc(var(--hue) + 50) 45% 16%)) }
+/* Cards: gradient card when empty; an uploaded image/video replaces it, with the text on a scrim. Big title, details below. */
+.tile { position: absolute; left: 0; top: 0; width: var(--w); height: var(--h); margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2); padding: 0; overflow: hidden; background: #14111d; border: 1px solid var(--line); border-radius: 6px; color: var(--text); font-size: calc(var(--w) * .085); cursor: pointer }
+.tile:hover, .tile:focus-visible { border-color: var(--accent); box-shadow: 0 0 18px var(--glow); outline: none }
+.card { display: flex; flex-direction: column; gap: .3em; width: 100%; height: 100%; padding: .6em .7em; text-align: left;
+  background: radial-gradient(circle at 85% 10%, hsl(var(--hue) 85% 50% / .5), transparent 60%), linear-gradient(160deg, hsl(var(--hue) 40% 17%), #0a0911 85%) }
+.label { position: absolute; inset: 0 0 auto; display: flex; flex-direction: column; gap: .3em; padding: .55em .65em 1.6em; text-align: left; pointer-events: none;
+  background: linear-gradient(rgba(6, 5, 11, .92), rgba(6, 5, 11, .68) 60%, transparent) }
+.card b, .label b { font-size: 1.3em; font-weight: 600; line-height: 1.08; text-shadow: 0 1px 3px #000 }
+.card span, .label span { display: -webkit-box; overflow: hidden; color: #ddd3c4; font-size: .72em; line-height: 1.25; -webkit-line-clamp: 2; -webkit-box-orient: vertical }
+.card small, .label small { color: var(--accent2); font: .6em var(--mono); letter-spacing: .08em; text-transform: uppercase }
+.media { position: absolute; inset: 0 }
+.media > *, .portrait > img, .portrait > video, .mini > * { display: block; width: 100%; height: 100%; object-fit: cover }
+.tile .media > * { pointer-events: none }
 .mini { display: block; width: 100%; height: 100% }
+.full #sphere-panel { position: fixed; inset: 0; z-index: 15; height: auto; background: var(--bg); border: 0; border-radius: 0 }
+body:not(.full) #stage { cursor: zoom-in }
 
 /* About me */
 #about h2 { font-size: 24px }
@@ -88,25 +95,24 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .portrait { aspect-ratio: 4 / 3; overflow: hidden; background: #000; border: 1px solid var(--line); border-radius: 4px }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 6px; margin: 10px 0 0 }
 .stats div { padding: 4px 8px; background: var(--raise); border: 1px solid var(--line); border-radius: 4px }
-.stats dt { overflow: hidden; color: var(--muted); font: 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis }
+.stats dt { overflow: hidden; color: var(--accent2); font: 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis }
 .stats dd { margin: 0; font-weight: 600 }
 .chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 }
-.chips span { padding: 1px 9px; border: 1px solid var(--line); border-radius: 99px; color: var(--muted); font-size: 12px }
+.chips span { padding: 1px 9px; border: 1px solid color-mix(in srgb, var(--accent2) 35%, transparent); border-radius: 99px; color: color-mix(in srgb, var(--accent2) 70%, var(--text)); font-size: 12px }
 .body p { margin: 8px 0 }
 .body ul { margin: 8px 0; padding-left: 18px }
 .body li { margin: 5px 0 }
 .body li::marker { color: var(--accent) }
 .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; margin: 12px 0 }
-.gallery img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border: 1px solid var(--line); border-radius: 3px; cursor: zoom-in }
-.gallery img:hover { border-color: var(--accent) }
+.gallery button { position: relative; aspect-ratio: 4 / 3; padding: 0; overflow: hidden; background: #000; border: 1px solid var(--line); border-radius: 3px; cursor: zoom-in }
+.gallery button:hover { border-color: var(--accent) }
+.gallery img { display: block; width: 100%; height: 100%; object-fit: cover }
+.badge { position: absolute; left: 5px; top: 3px; font-size: 12px; font-style: normal; text-shadow: 0 0 3px #000, 0 0 3px #000 }
 .links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px }
-.tabs { display: flex; flex-wrap: wrap; margin: 14px 0 4px; border-bottom: 1px solid var(--line) }
-.tabs button { padding: 6px 10px; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted); font-size: 12px; letter-spacing: .06em; text-transform: uppercase }
-.tabs button.on, .tabs button:hover { color: var(--text); border-color: var(--accent) }
 .entry { padding: 10px 0; border-bottom: 1px dashed var(--line) }
 .entry:last-child { border: 0 }
 .entry-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px }
-.entry-head span { font: 12px var(--mono) }
+.entry-head span { color: var(--accent2); font: 12px var(--mono) }
 .comp { margin: 10px 0 0; padding: 0; list-style: none }
 .comp button { display: grid; grid-template-columns: 48px 1fr auto; align-items: center; gap: 10px; width: 100%; padding: 5px; background: none; border: 0; border-bottom: 1px solid var(--line); text-align: left }
 .comp button:hover, .comp button.on { background: var(--raise); box-shadow: inset 2px 0 var(--accent) }
@@ -124,14 +130,23 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 #term-form { display: flex; gap: 10px; align-items: baseline }
 #term-in { flex: 1; padding: 0; background: none; border: 0; caret-color: var(--accent) }
 #term-in:focus { box-shadow: none; outline: none }
+#term-in::placeholder { color: #5d5566 }
+#suggest { margin: 6px 0 2px; padding: 6px 10px; background: rgba(255, 255, 255, .03); border: 1px solid var(--line); border-radius: 4px }
+.sg-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; margin: 3px 0 }
+.sg-row > span { flex: 0 0 72px; color: var(--accent2); font-size: 11px; letter-spacing: .12em; text-transform: uppercase }
+.sg { padding: 1px 8px; background: none; border: 1px solid var(--line); border-radius: 3px; color: var(--muted); font: 12px/1.6 var(--mono) }
+.sg b { color: var(--accent); font-weight: 400 }
+.sg:hover, .sg:focus-visible { border-color: var(--accent); color: var(--text); outline: none }
 
 @media (max-width: 800px) {
   .site { display: flex; flex-direction: column; height: auto; min-height: 100dvh; overflow: auto }
   .site .panel { flex: none }
   #sphere-panel { height: 62vh }
-  #term { height: 75vh }
+  #term { order: 1; height: 75vh }
+  #about { order: 2 }
   #stage { touch-action: pan-y }
   .sheet-top { grid-template-columns: 1fr }
   .win { left: 8px !important; top: 8px !important; max-height: calc(100dvh - 16px) }
   #term .body { font-size: 13px }
+  .sg-row > span { flex-basis: 100% }
 }

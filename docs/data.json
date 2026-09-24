@@ -5,7 +5,8 @@
     "location": "Singapore",
     "summary": "Computer Engineering undergraduate at the Singapore Institute of Technology with a Diploma in Game Design and Development and hands-on experience shipping full-stack web, desktop, mobile, and embedded software. Builds end-to-end products across React, TypeScript, Python, Electron, Flutter, and Unity, with a strong foundation in data structures, algorithm analysis, and optimisation. Experienced in integrating AI and LLM services (Google Gemini, OpenAI, Agnes AI), computer vision models (YOLOv8, MobileCLIP), cloud and backend platforms (Supabase, Vercel, Docker, Cloudflare), and robotics tooling (ROS 2, MQTT, WebRTC, LiDAR). Two-time hackathon builder and former web developer and game design intern, with proven cross-functional communication, data integrity, and event leadership skills. Interested in software engineering, data analytics, and process optimisation.",
     "links": "GitHub | https://github.com/nyx-ulrix\nLinkedIn | https://www.linkedin.com/in/malcolmliewjiaen/\nEmail | mailto:malcolmliew.je@gmail.com",
-    "accent": "#ff6400"
+    "accent": "#ff6400",
+    "accent2": "#b79cff"
   },
   "sphere": {
     "size": 0.38,
@@ -32,7 +33,9 @@
       "tools": "React, TypeScript, Vite, Tailwind CSS, Hono, Supabase, Google Gemini, Agnes AI, Vercel",
       "links": "GitHub | https://github.com/nyx-ulrix/Fitz\nLive | https://fitz-bay.vercel.app",
       "text": "Built a fully functioning, mobile-first AI wardrobe and styling web application that recommends daily outfits using the user's own clothes, deployed on Vercel.\nIntegrated Google Gemini computer vision to generate a personalised colour profile (undertone, contrast, recommended colours) from a user photo and to classify garments by category, colour, and pattern, with privacy-aware prompting that avoids sensitive inferences.\nIntegrated Agnes AI for wardrobe-grounded outfit generation (\"Dress me\") and AI virtual try-on image generation (\"Try it on\"), letting users preview pairings before committing and reducing impulsive purchases and textile waste.\nIncorporated live weather data from the Open-Meteo API into outfit recommendation prompts for context-aware suggestions.\nDesigned a swipe-based mix-and-match outfit grid with item locking and local caching for session continuity.\nBuilt a Hono API on Node.js deployed as Vercel serverless functions, with Supabase for authentication, storage, and wardrobe data, and Supabase Edge Functions for \"Style Jams\" collaborative event outfit planning.\nEngineered graceful degradation with an AI service health check and status banner so core features remain usable when generative AI services are unavailable.",
-      "images": []
+      "images": [
+        "fitz.webp"
+      ]
     },
     {
       "title": "Yahboom Robot",
@@ -42,7 +45,9 @@
       "tools": "Python, Flask, React, TypeScript, ROS 2, MQTT, WebRTC, YOLOv8, MobileCLIP, Raspberry Pi, LiDAR",
       "links": "GitHub | https://github.com/nyx-ulrix/YahboomProject",
       "text": "Developed a monorepo robotics stack comprising a React and Vite web dashboard, a Flask backend, and Raspberry Pi scripts for a Yahboom robot car.\nImplemented real-time camera streaming over WebRTC and MQTT frame relay, and an MQTT-to-ROS 2 bridge for movement commands, autonomous exploration, and drive status.\nBuilt a LiDAR-based obstacle safety node and LiDAR grid and SLAM views in the dashboard.\nImplemented and compared two object detection pipelines for emergency stopping: server-side YOLOv8 (Ultralytics) inference on live frames, and a Cache Aware Offloading (CAO) pipeline using MobileCLIP-S1 vision transformer embeddings on the Pi with image-to-image cosine similarity matching against a reference library.\nDesigned a Stop-Time Test Bench with configurable detection modes, similarity thresholds, embedding sizes (512/1024/2048 B), simulated network hop delay, and CSV export for benchmarking edge versus cloud inference latency.\nBuilt a customisable widget-based dashboard with layout templates, an event log, and a REST API for video, VIT embeddings, YOLO, and test bench control.",
-      "images": []
+      "images": [
+        "yahboom-robot.webp"
+      ]
     },
     {
       "title": "The Daily Grind",
@@ -112,7 +117,9 @@
       "tools": "Unity, C#",
       "links": "GitHub | https://github.com/nyx-ulrix/Escape-from-edo",
       "text": "Developed a Unity game in C# as part of the Diploma in Game Design and Development, covering gameplay programming, level design, and asset integration.",
-      "images": []
+      "images": [
+        "escape-from-edo.webp"
+      ]
     },
     {
       "title": "DocBot",
@@ -122,7 +129,9 @@
       "tools": "Unity, C#, Game AI",
       "links": "GitHub (FSM) | https://github.com/nyx-ulrix/DocBot-FSM\nGitHub (BT) | https://github.com/nyx-ulrix/DocBot-bt",
       "text": "Implemented the same non-player character AI agent using two game AI architectures, a finite state machine (FSM) and a behaviour tree (BT), to compare decision-making approaches in Unity.",
-      "images": []
+      "images": [
+        "docbot.webp"
+      ]
     },
     {
       "title": "Self-Care",
@@ -132,7 +141,9 @@
       "tools": "Unity, C#",
       "links": "GitHub | https://github.com/nyx-ulrix/Self-care",
       "text": "Built an interactive self-care themed application in Unity and C# as a polytechnic project.",
-      "images": []
+      "images": [
+        "self-care.webp"
+      ]
     },
     {
       "title": "AR Food Menu",
@@ -142,7 +153,9 @@
       "tools": "Unity, C#, AR",
       "links": "",
       "text": "Browse 3D dishes on the table with calories, fat, carbohydrates, and protein shown in AR; double-tap a dish to add it to the cart.",
-      "images": []
+      "images": [
+        "ar-food-menu.webp"
+      ]
     },
     {
       "title": "AR Robot Shooter",
@@ -152,7 +165,9 @@
       "tools": "Unity, C#, AR",
       "links": "",
       "text": "Timed AR shooter where robot drones spawn over the real world and are targeted through an on-screen crosshair.",
-      "images": []
+      "images": [
+        "ar-robot-shooter.webp"
+      ]
     },
     {
       "title": "Multiplayer Room Lobby",
@@ -162,7 +177,9 @@
       "tools": "Unity, C#, Networking",
       "links": "",
       "text": "Multiplayer lobby with named room creation, player counts, and quick join, set in a cyberpunk city scene.",
-      "images": []
+      "images": [
+        "multiplayer-room-lobby.webp"
+      ]
     },
     {
       "title": "Chain Reaction Machine",
@@ -172,7 +189,9 @@
       "tools": "Unity, C#, Physics",
       "links": "",
       "text": "Physics contraption of ramps, funnels, springs, and a rotating maze that carries a ball from top to bottom.",
-      "images": []
+      "images": [
+        "chain-reaction-machine.webp"
+      ]
     },
     {
       "title": "Memo App",
@@ -192,7 +211,9 @@
       "tools": "HTML, CSS, JavaScript",
       "links": "GitHub | https://github.com/nyx-ulrix/21st-Birthday-Site",
       "text": "Designed and built a personalised event website.",
-      "images": []
+      "images": [
+        "21st-birthday-website.webp"
+      ]
     },
     {
       "title": "React Refresh",

@@ -2,7 +2,9 @@
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
 const api = (url, o = {}) => fetch(url, { ...o, headers: { 'X-GM': '1' } });
-const thumb = file => `/uploads/${file.replace(/(\.\w+)$/, '-t$1')}`;
+const thumbName = file => file.replace(/\.\w+$/, '-t.webp'); // images and videos both get a WebP thumbnail/poster
+const thumb = file => `/uploads/${thumbName(file)}`;
+const isVid = file => /\.(mp4|webm)$/i.test(file);
 const MAX = 50;
 
 const data = await fetch('/data.json', { cache: 'no-store' }).then(r => r.json());
@@ -16,7 +18,7 @@ const field = (label, path, type = 'text', attrs = '') => `<label><span>${label}
   : `<input type="${type}" data-path="${path}" value="${esc(get(path))}" ${attrs}>`}</label>`;
 const blank = () => ({ title: 'New project', tagline: '', year: String(new Date().getFullYear()), type: '', tools: '', links: '', text: '', images: [] });
 const swap = (a, x, y) => { if (a[x] && a[y]) [a[x], a[y]] = [a[y], a[x]]; };
-const rmFiles = file => [file, file.replace(/(\.\w+)$/, '-t$1')].forEach(f => api(`/api/upload?name=${f}`, { method: 'DELETE' }));
+const rmFiles = file => [file, thumbName(file)].forEach(f => api(`/api/upload?name=${f}`, { method: 'DELETE' }));
 
 // ---- Saving: debounced full-file PUT; the server swaps data.json atomically.
 function save() { $('#saved').textContent = 'unsaved…'; clearTimeout(timer); timer = setTimeout(flush, 400); }
@@ -37,7 +39,7 @@ function renderList() {
   $('#count').textContent = `${P.length} / ${MAX} projects`;
   $('#new').disabled = P.length >= MAX;
   $('#plist').innerHTML = P.map((p, i) => !p.title.toLowerCase().includes(q) ? '' :
-    `<li><button data-pick="${i}"${view[0] === 'project' && view[1] === i ? ' class="on"' : ''}><span class="mini">${p.images[0] ? `<img src="${thumb(p.images[0])}" alt="">` : `<span class="art" style="--hue:${(i * 47 + 15) % 360};--sx:${20 + (i * 29) % 60}%"></span>`}</span><b>${String(i + 1).padStart(2, '0')} · ${esc(p.title)}</b><small>${esc(p.type)}</small></button></li>`).join('');
+    `<li><button data-pick="${i}"${view[0] === 'project' && view[1] === i ? ' class="on"' : ''}><span class="mini">${p.images[0] ? `<img src="${thumb(p.images[0])}" alt="">` : `<span class="card" style="--hue:${(i * 47 + 15) % 360}"></span>`}</span><b>${String(i + 1).padStart(2, '0')} · ${esc(p.title)}</b><small>${esc(p.type)}</small></button></li>`).join('');
 }
 
 function render() {
@@ -55,13 +57,13 @@ function render() {
       ${field('Tools (comma separated)', `${b}tools`)}
       ${field('Details (one bullet per line)', `${b}text`, 'area')}
       ${field('Links (one per line: Label | https://…)', `${b}links`, 'area')}
-      <h3>Images · first is the cover</h3>
-      <label class="drop">Drop images anywhere on this page, or click to choose<input type="file" accept="image/*" multiple hidden></label>
-      <div class="imgs">${p.images.map((f, j) => `<figure><img src="${thumb(f)}" alt=""><figcaption>${j ? `<button class="btn" data-act="cover" data-j="${j}">★ Make cover</button>` : '<span class="hl">★ Cover</span>'}<button class="btn danger" data-act="rmimg" data-j="${j}" aria-label="Remove image">✕</button></figcaption></figure>`).join('')}</div>`;
+      <h3>Images &amp; videos · first is the cover on the sphere</h3>
+      <label class="drop">Drop images or videos (MP4/WebM, max 50 MB) anywhere on this page, or click to choose<input type="file" accept="image/*,video/mp4,video/webm" multiple hidden></label>
+      <div class="imgs">${p.images.map((f, j) => `<figure><img src="${thumb(f)}" alt="">${isVid(f) ? '<i class="badge">▶ video</i>' : ''}<figcaption>${j ? `<button class="btn" data-act="cover" data-j="${j}">★ Make cover</button>` : '<span class="hl">★ Cover</span>'}<button class="btn danger" data-act="rmimg" data-j="${j}" aria-label="Remove image">✕</button></figcaption></figure>`).join('')}</div>`;
   } else if (kind === 'site') {
     ed.innerHTML = `<h2>Site &amp; UI</h2>
       <h3>Identity</h3>
-      <div class="grid">${field('Name', 'site.name')}${field('Headline', 'site.role')}${field('Location', 'site.location')}${field('Accent colour', 'site.accent', 'color')}</div>
+      <div class="grid">${field('Name', 'site.name')}${field('Headline', 'site.role')}${field('Location', 'site.location')}${field('Accent colour', 'site.accent', 'color')}${field('Secondary colour', 'site.accent2', 'color')}</div>
       ${field('Summary', 'site.summary', 'area')}
       ${field('Contact links (one per line: Label | https://… or mailto:…)', 'site.links', 'area')}
       <h3>Sphere</h3>
@@ -124,22 +126,43 @@ document.addEventListener('click', e => {
   save();
 });
 
-// ---- Images: resized + converted to WebP in the browser (full 1600px, thumb 480px) to stay light on Pages bandwidth.
+// ---- Media: images are resized to WebP in the browser (full 1600px, thumb 480px) to stay light on Pages bandwidth;
+// videos upload as-is (MP4/WebM, ≤ 50 MB) with a WebP poster grabbed from ~1s in.
+const shrink = (src, w, h, max, q) => {
+  const s = Math.min(1, max / Math.max(w, h)), c = new OffscreenCanvas(Math.round(w * s), Math.round(h * s));
+  c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+  return c.convertToBlob({ type: 'image/webp', quality: q });
+};
+const put = async (name, body) => { const r = await api(`/api/upload?name=${name}`, { method: 'POST', body }); if (!r.ok) throw new Error(await r.text()); };
+async function posterFrame(file) {
+  const v = Object.assign(document.createElement('video'), { muted: true, preload: 'auto', src: URL.createObjectURL(file) });
+  await new Promise((ok, no) => { v.onloadeddata = ok; v.onerror = () => no(new Error('this browser can’t play it, export as MP4 (H.264) or WebM')); });
+  v.currentTime = Math.min(1, v.duration / 2);
+  await new Promise(ok => { v.onseeked = ok; });
+  return v;
+}
 async function upload(files) {
   const p = data.projects[view[1]];
   for (const f of files) {
-    if (!f.type.startsWith('image/')) continue;
+    const video = /^video\/(mp4|webm)$/.test(f.type);
+    if (!video && !f.type.startsWith('image/')) { log(`✖ ${f.name}: only images and MP4/WebM videos are supported`); continue; }
     log(`› Uploading ${f.name}…`);
     try {
-      const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7), bmp = await createImageBitmap(f);
-      for (const [suffix, max, q] of [['', 1600, 0.82], ['-t', 480, 0.75]]) {
-        const s = Math.min(1, max / Math.max(bmp.width, bmp.height));
-        const c = new OffscreenCanvas(Math.round(bmp.width * s), Math.round(bmp.height * s));
-        c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
-        const r = await api(`/api/upload?name=${id}${suffix}.webp`, { method: 'POST', body: await c.convertToBlob({ type: 'image/webp', quality: q }) });
-        if (!r.ok) throw new Error(await r.text());
+      const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      let name = `${id}.webp`;
+      if (video) {
+        if (f.size > 50e6) throw new Error(`${Math.round(f.size / 1e6)} MB is over the 50 MB limit, trim or compress it first`);
+        const v = await posterFrame(f);
+        name = `${id}.${f.type.slice(6)}`;
+        await put(name, f);
+        await put(thumbName(name), await shrink(v, v.videoWidth, v.videoHeight, 480, 0.75));
+        URL.revokeObjectURL(v.src);
+      } else {
+        const b = await createImageBitmap(f);
+        await put(name, await shrink(b, b.width, b.height, 1600, 0.82));
+        await put(thumbName(name), await shrink(b, b.width, b.height, 480, 0.75));
       }
-      p.images.push(`${id}.webp`);
+      p.images.push(name);
       render();
       save();
       log(`✔ ${f.name} added to "${p.title}"`);

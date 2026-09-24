@@ -14,12 +14,12 @@
 </head>
 <body class="site">
 <section id="sphere-panel" class="panel" aria-label="Projects sphere">
-  <header><b id="caption">Projects · drag to spin, click a frame</b><span id="status" class="dim"></span></header>
+  <header><b id="caption">Projects · click to expand</b><span id="status" class="dim"></span><button class="btn" id="full">⤢ Fullscreen</button></header>
   <main id="stage"><div id="sphere"></div></main>
 </section>
 
 <section id="about" class="panel" aria-label="About me">
-  <header><b>About me</b><a id="gm" class="btn" href="/admin/" hidden>GM dashboard</a></header>
+  <header><b>About me</b></header>
   <div class="body" id="about-body"></div>
 </section>
 
@@ -27,7 +27,8 @@
   <header><b>Terminal · visitor@sphere</b><span class="dim">type help</span></header>
   <div class="body">
     <div id="term-out" aria-live="polite"></div>
-    <form id="term-form"><label for="term-in" class="hl">visitor@sphere:~$</label><input id="term-in" autocomplete="off" autocapitalize="off" spellcheck="false"></form>
+    <form id="term-form"><label for="term-in" class="hl">visitor@sphere:~$</label><input id="term-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="click for suggestions"></form>
+    <div id="suggest" aria-label="Suggested commands" hidden></div>
   </div>
 </section>
 </body>

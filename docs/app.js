@@ -4,11 +4,21 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};
 const lines = s => String(s ?? '').split('\n').map(l => l.trim()).filter(Boolean);
 const links = s => lines(s).map(l => { const [a, b] = l.split('|').map(x => x.trim()); return { label: b ? a : a.replace(/^\w+:(\/\/)?/, ''), url: b || a }; })
   .filter(l => /^(https?:|mailto:)/i.test(l.url));
-const img = (file, thumb) => `uploads/${thumb ? file.replace(/(\.\w+)$/, '-t$1') : file}`;
-// Cover picture: first uploaded image, or a generated landscape so an empty frame still reads as a picture.
-const art = (p, i, full) => p.images?.length
-  ? `<img src="${img(p.images[0], !full)}" alt="" draggable="false">`
-  : `<span class="art" style="--hue:${(i * 47 + 15) % 360};--sx:${20 + (i * 29) % 60}%"></span>`;
+// Media files are images (.webp) or videos (.mp4/.webm); every file has a <name>-t.webp thumbnail / poster.
+const isVid = f => /\.(mp4|webm)$/i.test(f);
+const src = f => esc(`uploads/${f}`);
+const thumb = f => esc(`uploads/${f.replace(/\.\w+$/, '-t.webp')}`);
+const media = (f, full) => isVid(f)
+  ? `<video src="${src(f)}" poster="${thumb(f)}" muted loop playsinline ${full ? 'controls autoplay' : 'preload="none"'}></video>`
+  : `<img src="${full ? src(f) : thumb(f)}" alt="" draggable="false">`;
+const meta = p => esc([p.type, p.year].filter(Boolean).join(' · '));
+// Project card: gradient card when empty; a cover image/video replaces it when set. Big title on top, details below.
+const card = (p, i) => {
+  const f = p.images?.[0], text = `<b>${esc(p.title)}</b>${p.tagline ? `<span>${esc(p.tagline)}</span>` : ''}<small>${meta(p)}</small>`;
+  return f
+    ? `<span class="media">${media(f)}</span><span class="label">${text}</span>`
+    : `<span class="card" style="--hue:${(i * 47 + 15) % 360}">${text}</span>`;
+};
 const bullets = s => { const l = lines(s); return l.length > 1 ? `<ul>${l.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : l.length ? `<p>${esc(l[0])}</p>` : ''; };
 const chips = s => lines(s).length ? `<div class="chips">${s.split(',').map(t => `<span>${esc(t.trim())}</span>`).join('')}</div>` : '';
 const linkBtns = s => `<div class="links">${links(s).map(l => `<a class="btn" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join('')}</div>`;
@@ -21,19 +31,17 @@ const entry = it => !it.org && !it.when && lines(it.text).length === 1
 const data = await fetch('data.json', { cache: 'no-cache' }).then(r => r.json());
 const { site, projects: P, resume } = data;
 const S = { size: .38, fill: .8, spin: .06, minTiles: 24, ...data.sphere };
-const stage = $('#stage'), sphere = $('#sphere'), caption = $('#caption'), CAPTION = caption.textContent;
+const stage = $('#stage'), sphere = $('#sphere'), caption = $('#caption');
 document.title = `${site.name} · Portfolio`;
 document.documentElement.style.setProperty('--accent', site.accent || '#ff6400');
-$('#gm').hidden = !/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+document.documentElement.style.setProperty('--accent2', site.accent2 || '#b79cff');
 
-// ---- About me
-const tabs = [{ name: 'Summary', html: `<p>${esc(site.summary)}</p>` }, ...resume.map(r => ({ name: r.name, html: r.items.map(entry).join('') }))];
-const first = Math.max(0, tabs.findIndex(t => /skill/i.test(t.name)));
+// ---- About me: everything in one scrolling column.
 $('#about-body').innerHTML = `
   <h2>${esc(site.name)}</h2><p class="muted">${esc(site.role)} · ${esc(site.location)}</p>
   ${linkBtns(site.links)}
-  <nav class="tabs">${tabs.map((t, j) => `<button data-tab="${j}"${j === first ? ' class="on"' : ''}>${esc(t.name)}</button>`).join('')}</nav>
-  ${tabs.map((t, j) => `<div class="tab"${j === first ? '' : ' hidden'}>${t.html}</div>`).join('')}`;
+  <h3>Summary</h3><p>${esc(site.summary)}</p>
+  ${resume.map(r => `<h3>${esc(r.name)}</h3>${r.items.map(entry).join('')}`).join('')}`;
 
 // ---- Sphere: frames sit on a Fibonacci lattice facing outward; each frame only the wrapper rotates.
 let tiles = [], R = 1, rx = -12, ry = 0, vx = 0, vy = 0, drag = null, moved = 0;
@@ -50,12 +58,12 @@ function build() {
     const p = i % P.length, el = document.createElement('button');
     el.className = 'tile';
     el.dataset.p = p;
-    el.innerHTML = `<span class="pic">${art(P[p], p)}</span><span class="plate">${esc(P[p].title)}</span>`;
+    el.innerHTML = card(P[p], p);
     el.setAttribute('aria-label', P[p].title);
     if (i >= P.length) el.tabIndex = -1; // repeated covers: one tab stop per project
     el.style.transform = `translate3d(${x}px,${y}px,${z}px) rotateY(${Math.atan2(x, z)}rad) rotateX(${Math.asin(-y / R)}rad)`;
     sphere.append(el);
-    return { el, x, y, z, back: null };
+    return { el, x, y, z, back: null, video: el.querySelector('video'), live: false };
   });
 }
 
@@ -74,6 +82,8 @@ function tick(now) {
     const k = (z / R + 1) / 2;                       // 0 = far side, 1 = facing the viewer
     t.el.style.opacity = (.1 + .9 * k * k).toFixed(2);
     if (t.back !== z < 0) t.el.style.pointerEvents = (t.back = z < 0) ? 'none' : '';
+    const live = !still && z > R * .4; // only videos near the front play (and download)
+    if (t.video && t.live !== live) (t.live = live) ? t.video.play().catch(() => {}) : t.video.pause();
   }
   frames++;
   if (now - fpsAt > 1000) {
@@ -93,15 +103,25 @@ addEventListener('pointermove', e => {
   rx += vx = -dy * .25;
 });
 for (const ev of ['pointerup', 'pointercancel']) addEventListener(ev, () => { drag = null; });
-sphere.addEventListener('click', e => {
+// The corner sphere is a preview: a click expands it to fullscreen, where clicking a card opens the project.
+const isFull = () => document.body.classList.contains('full');
+const hint = () => isFull() ? 'Projects · drag to spin, click a card' : 'Projects · click to expand';
+const setFull = on => {
+  document.body.classList.toggle('full', on);
+  $('#full').textContent = on ? '✕ Close' : '⤢ Fullscreen';
+  caption.textContent = hint();
+};
+stage.addEventListener('click', e => {
+  if (e.detail && moved > 6) return; // that was a drag (e.detail 0 = keyboard click)
   const t = e.target.closest('.tile');
-  if (t && !(e.detail && moved > 6)) openProject(+t.dataset.p); // e.detail 0 = keyboard click
+  if (t && (isFull() || !e.detail)) openProject(+t.dataset.p);
+  else if (!isFull()) setFull(true);
 });
 sphere.addEventListener('pointerover', e => {
   const t = e.target.closest('.tile'), p = t && P[t.dataset.p];
   if (p) caption.textContent = `▸ ${[p.title, p.type, p.year].filter(Boolean).join(' · ')}`;
 });
-sphere.addEventListener('pointerleave', () => { caption.textContent = CAPTION; });
+sphere.addEventListener('pointerleave', () => { caption.textContent = hint(); });
 new ResizeObserver(build).observe(stage); // also does the first build
 requestAnimationFrame(tick);
 
@@ -142,32 +162,46 @@ function openProject(i) {
   const p = P[i], im = p.images || [];
   openWin('win-project', p.title, `
     <div class="sheet-top">
-      <div class="portrait">${art(p, i, true)}</div>
+      <div class="portrait">${im.length ? media(im[0], true) : card(p, i)}</div>
       <div><h2>${esc(p.title)}</h2><p class="muted">${esc(p.tagline)}</p>
         <dl class="stats">${stat('Year', p.year)}${stat('Type', p.type)}${stat('Slot', `#${String(i + 1).padStart(2, '0')}`)}</dl></div>
     </div>
     ${chips(p.tools)}${bullets(p.text)}
-    ${im.length > 1 ? `<div class="gallery">${im.map((f, j) => `<img src="${img(f, true)}" data-full="${img(f)}" alt="${esc(p.title)} image ${j + 1}">`).join('')}</div>` : ''}
+    ${im.length > 1 ? `<div class="gallery">${im.map((f, j) => `<button data-f="${esc(f)}" aria-label="Show ${isVid(f) ? 'video' : 'image'} ${j + 1}"><img src="${thumb(f)}" alt="">${isVid(f) ? '<i class="badge">▶</i>' : ''}</button>`).join('')}</div>` : ''}
     ${linkBtns(p.links)}`);
 }
 
 // ---- Terminal
 const tbody = $('#term .body'), out = $('#term-out'), tin = $('#term-in');
 const print = (html, cls = '') => { out.insertAdjacentHTML('beforeend', `<div class="${cls}">${html || ' '}</div>`); tbody.scrollTop = tbody.scrollHeight; };
-const cmd = c => `<a data-cmd="${c}">${c}</a>`;
+const cmd = c => `<a data-cmd="${esc(c)}">${esc(c)}</a>`;
 const pad = (text, n, html = esc(text)) => html + ' '.repeat(Math.max(1, n - String(text).length));
 const ext = l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">[${esc(l.label)}]</a>`;
 const key = name => name.toLowerCase().match(/[a-z0-9]+/)?.[0] ?? '';
+// Every tool/skill across projects → project indexes, most-used first.
+const stacks = [...P.reduce((m, p, i) => {
+  for (const t of lines(p.tools.replaceAll(',', '\n'))) m.set(t, [...(m.get(t) || []), i]);
+  return m;
+}, new Map())].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+function table(ids, note) {
+  const tw = Math.max(8, ...P.map(p => p.title.length)) + 2, yw = Math.max(5, ...P.map(p => String(p.type).length)) + 2;
+  print(`<span class="dim">  #   ${pad('PROJECT', tw)}${pad('TYPE', yw)}YEAR</span>\n`
+    + ids.map(i => `  ${String(i + 1).padStart(2, '0')}  ${pad(P[i].title, tw, `<a data-open="${i}">${esc(P[i].title)}</a>`)}${pad(P[i].type, yw)}${esc(P[i].year)}`).join('\n')
+    + `\n<span class="dim">  ${note} · </span>${cmd('open')}<span class="dim"> &lt;n&gt; for details, or click a card on the sphere</span>`, 'pre');
+}
 const cmds = {
-  help: () => print([['ls [filter]', 'list projects'], ['open <n|name>', 'show one project'], ['whoami', 'summary + contact'],
+  help: () => print([['ls [filter]', 'list projects'], ['stack [skill]', 'projects by skill / tool'], ['open <n|name>', 'show one project'], ['whoami', 'summary + contact'],
     ...resume.map(r => [key(r.name), r.name]), ['clear', 'clear the screen']]
     .map(([c, d]) => '  ' + pad(c, 18, `<a data-cmd="${c.split(' ')[0]}">${esc(c)}</a>`) + `<span class="dim">${esc(d)}</span>`).join('\n'), 'pre'),
   ls: (q = '') => {
-    const rows = P.map((p, i) => [p, i]).filter(([p]) => `${p.title} ${p.type} ${p.tools} ${p.year}`.toLowerCase().includes(q.toLowerCase()));
-    const tw = Math.max(8, ...P.map(p => p.title.length)) + 2, yw = Math.max(5, ...P.map(p => String(p.type).length)) + 2;
-    print(`<span class="dim">  #   ${pad('PROJECT', tw)}${pad('TYPE', yw)}YEAR</span>\n`
-      + rows.map(([p, i]) => `  ${String(i + 1).padStart(2, '0')}  ${pad(p.title, tw, `<a data-open="${i}">${esc(p.title)}</a>`)}${pad(p.type, yw)}${esc(p.year)}`).join('\n')
-      + `\n<span class="dim">  ${rows.length}/${P.length} shown · </span>${cmd('open')}<span class="dim"> &lt;n&gt; for details, or click a frame on the sphere</span>`, 'pre');
+    const ids = P.map((_, i) => i).filter(i => `${P[i].title} ${P[i].type} ${P[i].tools} ${P[i].year}`.toLowerCase().includes(q.toLowerCase()));
+    table(ids, `${ids.length}/${P.length} shown`);
+  },
+  stack: (q = '') => {
+    if (!q) return print(`<span class="dim">skills used across projects (click one):</span>\n` + stacks.map(([t, ids]) => `${cmd(`stack ${t}`)}<span class="dim">×${ids.length}</span>`).join('   '));
+    const s = q.toLowerCase(), hit = stacks.find(([t]) => t.toLowerCase() === s) || stacks.find(([t]) => t.toLowerCase().includes(s));
+    if (!hit) return print(`no project uses "${esc(q)}" · see ${cmd('stack')}`);
+    table(hit[1], `${hit[1].length} project${hit[1].length > 1 ? 's' : ''} using ${esc(hit[0])}`);
   },
   open: (q = '') => {
     const i = /^\d+$/.test(q) ? q - 1 : q ? P.findIndex(p => p.title.toLowerCase().includes(q.toLowerCase())) : -1, p = P[i];
@@ -178,7 +212,7 @@ ${esc(p.tagline)}
 <span class="dim">year</span> ${esc(p.year)}   <span class="dim">type</span> ${esc(p.type)}
 <span class="dim">tools</span> ${esc(p.tools)}
 ${lines(p.text).map(l => ` • ${esc(l)}`).join('\n')}
-${links(p.links).map(ext).join(' ')}${im.length ? '\n' + im.map(f => `<img src="${img(f, true)}" alt="">`).join('') : ''}`);
+${links(p.links).map(ext).join(' ')}${im.length ? '\n' + im.map(f => `<img src="${thumb(f)}" alt="">`).join('') : ''}`);
   },
   whoami: () => print(`<b class="hl">${esc(site.name)}</b> · ${esc(site.role)} · ${esc(site.location)}\n\n${esc(site.summary)}\n\n${links(site.links).map(ext).join(' ')}`),
   clear: () => { out.innerHTML = ''; },
@@ -187,9 +221,31 @@ for (const r of resume) cmds[key(r.name)] = () => print(`<b class="hl">── ${
   `\n\n<b>${esc(it.title)}</b>${it.org ? ` · ${esc(it.org)}` : ''}${it.when ? `  <span class="dim">${esc(it.when)}</span>` : ''}\n${lines(it.text).map(l => ` • ${esc(l)}`).join('\n')}`).join(''));
 Object.assign(cmds, { projects: cmds.ls, about: cmds.whoami, cls: cmds.clear });
 
+// Suggestions under the prompt: shown on focus/click/typing, filtered by what's typed, click (or Tab) to use.
+const sug = $('#suggest');
+function suggest() {
+  const q = tin.value.trim().toLowerCase();
+  const groups = [
+    ['Try', [['ls', 'all projects'], ['stack', 'by skill'], ['whoami', 'about me'], ...resume.map(r => [key(r.name), r.name]), ['help', 'every command']], 8],
+    ['Open', P.map((p, i) => [`open ${i + 1}`, p.title]), 5],
+    ['By skill', stacks.map(([t, ids]) => [`stack ${t}`, `×${ids.length}`]), 8],
+  ].map(([name, items, n]) => [name, items.filter(([c, l]) => !q || `${c} ${l}`.toLowerCase().includes(q)).slice(0, q ? 6 : n)])
+    .filter(([, items]) => items.length);
+  sug.innerHTML = groups.map(([name, items]) => `<div class="sg-row"><span class="dim">${name}</span>${items.map(([c, l]) =>
+    `<button class="sg" data-cmd="${esc(c)}"><b>${esc(c)}</b> ${esc(l)}</button>`).join('')}</div>`).join('');
+  sug.hidden = !groups.length;
+  tbody.scrollTop = tbody.scrollHeight;
+}
+tin.addEventListener('focus', suggest);
+tin.addEventListener('click', suggest);
+tin.addEventListener('input', suggest);
+tin.addEventListener('blur', () => { sug.hidden = true; });
+sug.onmousedown = e => e.preventDefault(); // keep focus in the input so clicking a suggestion doesn't blur it away first
+
 const hist = [];
 let hp = 0;
 function run(line) {
+  sug.hidden = true;
   print(`<span class="hl">visitor@sphere</span>:~$ ${esc(line)}`);
   line = line.trim();
   if (!line) return;
@@ -200,10 +256,13 @@ function run(line) {
 }
 [`<span class="dim">SPHEREFOLIO OS v1.0.3 · link established · latency 1ms · ${P.length} projects · ${resume.length} dossiers</span>`,
   `<b class="hl">${esc(site.name)}</b> · ${esc(site.role)}`,
-  `type ${cmd('help')} or try ${cmd('ls')} ${cmd('whoami')} ${resume.slice(0, 3).map(r => cmd(key(r.name))).join(' ')}`, '',
+  `type ${cmd('help')} or try ${cmd('ls')} ${cmd('stack')} ${cmd('whoami')} ${resume.slice(0, 2).map(r => cmd(key(r.name))).join(' ')} · click the prompt for suggestions`, '',
 ].forEach((l, i) => setTimeout(() => print(l), i * 110));
 $('#term-form').onsubmit = e => { e.preventDefault(); run(tin.value); tin.value = ''; };
 tin.onkeydown = e => {
+  const first = !sug.hidden && sug.querySelector('[data-cmd]');
+  if (e.key === 'Tab' && first) { e.preventDefault(); tin.value = first.dataset.cmd; return suggest(); }
+  if (e.key === 'Escape') sug.hidden = true;
   if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
   e.preventDefault();
   hp = Math.max(0, Math.min(hist.length, hp + (e.key === 'ArrowUp' ? -1 : 1)));
@@ -213,22 +272,21 @@ tbody.onclick = e => { if (!getSelection().toString() && !e.target.closest('a'))
 
 // ---- Global input
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-open],[data-cmd],[data-tab],.x,.gallery img');
+  const t = e.target.closest('[data-open],[data-cmd],[data-f],#full,.x');
   if (!t) return;
   const d = t.dataset;
-  if (d.open) run(`open ${+d.open + 1}`);
+  if (t.id === 'full') setFull(!isFull());
+  else if (d.open) run(`open ${+d.open + 1}`);
   else if (d.cmd) run(d.cmd);
-  else if (d.tab) {
-    const box = t.closest('.body');
-    box.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', b === t));
-    box.querySelectorAll('.tab').forEach((x, j) => { x.hidden = j !== +d.tab; });
-  }
-  else if (t.matches('.x')) t.closest('.win').remove();
-  else t.closest('.win').querySelector('.portrait img').src = d.full;
+  else if (d.f) t.closest('.win').querySelector('.portrait').innerHTML = media(d.f, true);
+  else t.closest('.win').remove();
 });
 
 addEventListener('keydown', e => {
-  if (e.key === 'Escape') return [...document.querySelectorAll('.win')].sort((a, b) => b.style.zIndex - a.style.zIndex)[0]?.remove();
-  // Typing anywhere goes to the terminal.
-  if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && !e.target.closest('input, textarea, button, a')) tin.focus();
+  if (e.key === 'Escape') { // close the top project window, else leave fullscreen
+    const w = [...document.querySelectorAll('.win')].sort((a, b) => b.style.zIndex - a.style.zIndex)[0];
+    return w ? w.remove() : setFull(false);
+  }
+  // Typing anywhere goes to the terminal (unless the sphere is covering it).
+  if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && !isFull() && !e.target.closest('input, textarea, button, a')) tin.focus();
 });

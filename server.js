@@ -4,7 +4,7 @@ const http = require('http'), fs = require('fs'), path = require('path'), { spaw
 
 const PORT = 4000, SITE = path.join(__dirname, 'docs'), ADMIN = path.join(__dirname, 'admin'), UPLOADS = path.join(SITE, 'uploads');
 const DASHBOARD = `http://127.0.0.1:${PORT}/admin/`;
-const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml' };
+const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml', '.mp4': 'video/mp4', '.webm': 'video/webm' };
 
 const readBody = (req, max) => new Promise((resolve, reject) => {
   const chunks = [];
@@ -37,9 +37,10 @@ async function handle(req, res) {
       return send(200, 'saved');
     }
     const name = url.searchParams.get('name') || '';
-    if (url.pathname === '/api/upload' && /^[\w-]+\.(webp|jpg)$/.test(name)) {
+    if (url.pathname === '/api/upload' && /^[\w-]+\.(webp|jpg|mp4|webm)$/.test(name)) {
       const file = path.join(UPLOADS, name);
-      if (req.method === 'POST') { fs.mkdirSync(UPLOADS, { recursive: true }); fs.writeFileSync(file, await readBody(req, 20e6)); return send(200, 'uploaded'); }
+      // 50 MB cap: GitHub warns above 50 MB and rejects files over 100 MB.
+      if (req.method === 'POST') { fs.mkdirSync(UPLOADS, { recursive: true }); fs.writeFileSync(file, await readBody(req, 50e6)); return send(200, 'uploaded'); }
       if (req.method === 'DELETE') { fs.rmSync(file, { force: true }); return send(200, 'deleted'); }
     }
     if (url.pathname === '/api/publish' && req.method === 'POST') {
