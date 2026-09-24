@@ -126,12 +126,13 @@ stage.addEventListener('click', e => {
 });
 sphere.addEventListener('pointerover', e => {
   const t = e.target.closest('.tile'), p = t && P[t.dataset.p];
-  if (p) caption.textContent = `▸ ${[p.title, p.type, p.year].filter(Boolean).join(' · ')}`;
+  if (p) { caption.textContent = `▸ ${[p.title, p.type, p.year].filter(Boolean).join(' · ')}`; rest(+t.dataset.p); }
 });
-sphere.addEventListener('pointerleave', () => { caption.textContent = hint(); });
+sphere.addEventListener('pointerleave', () => { clearTimeout(closing); caption.textContent = hint(); });
 // ---- Project list beside the sphere: hover/focus spins that project's card to the front, click opens it.
-let target = null; // [rx, ry] in degrees, or null to free-spin
+let target = null, aimed = null; // target: [rx, ry] in degrees, or null to free-spin
 function aim(p) {
+  aimed = p;
   const t = p == null ? null : tiles.find(t => +t.el.dataset.p === p);
   target = t && [Math.atan2(t.y, Math.hypot(t.x, t.z)) / D, Math.atan2(-t.x, t.z) / D];
   for (const x of tiles) x.el.classList.toggle('lit', x === t);
@@ -142,19 +143,23 @@ plist.innerHTML = P.map((p, i) => `<li>${p.images?.length // photo thumbnail whe
   ? `<button class="pl" data-sheet="${i}"><span class="mini"><img src="${thumb(p.images[0])}" alt="" loading="lazy"></span>`
   : `<button class="pl no-img" data-sheet="${i}">`}`
   + `<span><b>${esc(p.title)}</b><small>#${String(i + 1).padStart(2, '0')}${p.type || p.year ? ` · ${meta(p)}` : ''}</small></span></button></li>`).join('');
-for (const ev of ['pointerover', 'focusin']) plist.addEventListener(ev, e => { const b = e.target.closest('[data-sheet]'); if (b) aim(+b.dataset.sheet); });
-plist.addEventListener('pointerleave', () => aim(null));
-plist.addEventListener('focusout', e => { if (!plist.contains(e.relatedTarget)) aim(null); });
-new ResizeObserver(build).observe(stage); // also does the first build
+for (const ev of ['pointerover', 'focusin']) plist.addEventListener(ev, e => {
+  const b = e.target.closest('[data-sheet]');
+  if (b) { aim(+b.dataset.sheet); if (ev === 'pointerover') rest(+b.dataset.sheet, true); }
+});
+// Leaving the list resumes the spin, unless project details are open (the sphere holds still while you read).
+plist.addEventListener('pointerleave', () => { clearTimeout(closing); if (openP == null) aim(null); });
+plist.addEventListener('focusout', e => { if (!plist.contains(e.relatedTarget) && openP == null) aim(null); });
+new ResizeObserver(() => { build(); if (aimed != null) aim(aimed); }).observe(stage); // also does the first build; rebuilds keep the highlight
 requestAnimationFrame(tick);
 
 // ---- Project sheets: draggable Foundry-style windows, Esc closes the top one.
 let zTop = 20;
-function openWin(id, title, html) {
+function openWin(id, title, html, wide) {
   let w = document.getElementById(id);
   if (!w) {
     w = document.createElement('section');
-    w.className = 'win';
+    w.className = wide ? 'win wide' : 'win'; // set before measuring so the window centres at its real width
     w.id = id;
     w.setAttribute('role', 'dialog');
     w.innerHTML = '<header><b></b><button class="x" aria-label="Close">✕</button></header><div class="body"></div>';
@@ -181,17 +186,32 @@ function openWin(id, title, html) {
   $('.body', w).scrollTop = 0;
 }
 
+// Details close when you interact outside them, click another project, or rest (350 ms) on another visible
+// project — a project under the popup can't be hovered, and passing over others on the way doesn't count.
+let openP = null, closing;
+function closeSheet() {
+  clearTimeout(closing);
+  if (openP == null) return;
+  $('#win-project')?.remove();
+  openP = null;
+  aim(null);
+}
+function rest(p, fromList) {
+  clearTimeout(closing);
+  if (openP != null && p !== openP) closing = setTimeout(() => { closeSheet(); if (fromList) aim(p); }, 350);
+}
 function openProject(i) {
+  openP = i;
+  if (!target) target = [rx, ry]; // hold the sphere still so cards don't drift under the cursor
   const p = P[i], im = p.images || [];
+  const head = `<div><h2>${esc(p.title)}</h2><p class="muted">${esc(p.tagline)}</p>
+    <dl class="stats">${stat('Year', p.year)}${stat('Type', p.type)}${stat('Slot', `#${String(i + 1).padStart(2, '0')}`)}</dl></div>`;
+  // With media: a wider window and the full, uncropped image/video on top. Without: the small card beside the title.
   openWin('win-project', p.title, `
-    <div class="sheet-top">
-      <div class="portrait">${im.length ? media(im[0], true) : card(p, i)}</div>
-      <div><h2>${esc(p.title)}</h2><p class="muted">${esc(p.tagline)}</p>
-        <dl class="stats">${stat('Year', p.year)}${stat('Type', p.type)}${stat('Slot', `#${String(i + 1).padStart(2, '0')}`)}</dl></div>
-    </div>
+    ${im.length ? `<div class="hero">${media(im[0], true)}</div>${head}` : `<div class="sheet-top"><div class="portrait">${card(p, i)}</div>${head}</div>`}
     ${chips(p.tools)}${bullets(p.text)}
     ${im.length > 1 ? `<div class="gallery">${im.map((f, j) => `<button data-f="${esc(f)}" aria-label="Show ${isVid(f) ? 'video' : 'image'} ${j + 1}"><img src="${thumb(f)}" alt="">${isVid(f) ? '<i class="badge">▶</i>' : ''}</button>`).join('')}</div>` : ''}
-    ${linkBtns(p.links)}`);
+    ${linkBtns(p.links)}`, im.length > 0);
 }
 
 // ---- Terminal
@@ -302,15 +322,17 @@ document.addEventListener('click', e => {
   else if (d.sheet) openProject(+d.sheet);
   else if (d.open) run(`open ${+d.open + 1}`);
   else if (d.cmd) run(d.cmd);
-  else if (d.f) t.closest('.win').querySelector('.portrait').innerHTML = media(d.f, true);
-  else t.closest('.win').remove();
+  else if (d.f) t.closest('.win').querySelector('.hero').innerHTML = media(d.f, true);
+  else closeSheet();
 });
 
+// Project details never block the view: interacting (click, tap, drag, focus) anywhere outside them closes them.
+// Capture phase, so the list/sphere handlers that run next can re-aim the sphere.
+for (const ev of ['pointerdown', 'focusin'])
+  document.addEventListener(ev, e => { if (!e.target.closest?.('.win')) closeSheet(); }, true);
+
 addEventListener('keydown', e => {
-  if (e.key === 'Escape') { // close the top project window, else leave fullscreen
-    const w = [...document.querySelectorAll('.win')].sort((a, b) => b.style.zIndex - a.style.zIndex)[0];
-    return w ? w.remove() : setFull(false);
-  }
+  if (e.key === 'Escape') return openP != null ? closeSheet() : setFull(false); // close details, else leave fullscreen
   // Typing anywhere goes to the terminal (unless the sphere is covering it).
   if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && !isFull() && !e.target.closest('input, textarea, button, a')) tin.focus();
 });
