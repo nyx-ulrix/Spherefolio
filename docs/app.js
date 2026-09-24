@@ -12,12 +12,13 @@ const media = (f, full) => isVid(f)
   ? `<video src="${src(f)}" poster="${thumb(f)}" muted loop playsinline ${full ? 'controls autoplay' : 'preload="none"'}></video>`
   : `<img src="${full ? src(f) : thumb(f)}" alt="" draggable="false">`;
 const meta = p => esc([p.type, p.year].filter(Boolean).join(' · '));
+const hue = i => (i * 47 + 15) % 360;
 // Project card: gradient card when empty; a cover image/video replaces it when set. Big title on top, details below.
 const card = (p, i) => {
   const f = p.images?.[0], text = `<b>${esc(p.title)}</b>${p.tagline ? `<span>${esc(p.tagline)}</span>` : ''}<small>${meta(p)}</small>`;
   return f
     ? `<span class="media">${media(f)}</span><span class="label">${text}</span>`
-    : `<span class="card" style="--hue:${(i * 47 + 15) % 360}">${text}</span>`;
+    : `<span class="card" style="--hue:${hue(i)}">${text}</span>`;
 };
 const bullets = s => { const l = lines(s); return l.length > 1 ? `<ul>${l.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : l.length ? `<p>${esc(l[0])}</p>` : ''; };
 const chips = s => lines(s).length ? `<div class="chips">${s.split(',').map(t => `<span>${esc(t.trim())}</span>`).join('')}</div>` : '';
@@ -53,10 +54,11 @@ function build() {
   stage.style.perspective = `${R * 4}px`;
   sphere.style.cssText = `--w:${w}px;--h:${w * .75}px`;
   sphere.innerHTML = '';
+  const photos = [...P.keys()].filter(i => P[i].images?.length), pool = photos.length ? photos : [...P.keys()];
   tiles = Array.from({ length: N }, (_, i) => {
     const phi = Math.acos(1 - 2 * (i + .5) / N), theta = Math.PI * (1 + Math.sqrt(5)) * i;
     const x = R * Math.cos(theta) * Math.sin(phi), y = R * Math.sin(theta) * Math.sin(phi), z = R * Math.cos(phi);
-    const p = i % P.length, el = document.createElement('button');
+    const p = i < P.length ? i : pool[(i - P.length) % pool.length], el = document.createElement('button'); // extra tiles repeat photo projects
     el.className = 'tile';
     el.dataset.p = p;
     el.innerHTML = card(P[p], p);
@@ -74,7 +76,11 @@ function tick(now) {
   const dt = Math.min(now - last, 50) / 16.7;
   last = now;
   if (drag) { vx *= .7; vy *= .7; } // holding still before release shouldn't fling
-  else { ry += (vy + (still ? 0 : S.spin)) * dt; rx += vx * dt; vx *= .95 ** dt; vy *= .95 ** dt; }
+  else if (target) { // ease toward the project picked in the list (shortest way round)
+    vx = vy = 0;
+    rx += (target[0] - rx) * Math.min(1, .12 * dt);
+    ry += (((target[1] - ry) % 360 + 540) % 360 - 180) * Math.min(1, .12 * dt);
+  } else { ry += (vy + (still ? 0 : S.spin)) * dt; rx += vx * dt; vx *= .95 ** dt; vy *= .95 ** dt; }
   rx = Math.max(-70, Math.min(70, rx));
   sphere.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
   const sx = Math.sin(rx * D), cx = Math.cos(rx * D), sy = Math.sin(ry * D), cy = Math.cos(ry * D);
@@ -94,7 +100,7 @@ function tick(now) {
   requestAnimationFrame(tick);
 }
 
-stage.addEventListener('pointerdown', e => { drag = [e.clientX, e.clientY]; moved = 0; });
+stage.addEventListener('pointerdown', e => { drag = [e.clientX, e.clientY]; moved = 0; aim(null); });
 addEventListener('pointermove', e => {
   if (!drag) return;
   const dx = e.clientX - drag[0], dy = e.clientY - drag[1];
@@ -123,6 +129,22 @@ sphere.addEventListener('pointerover', e => {
   if (p) caption.textContent = `▸ ${[p.title, p.type, p.year].filter(Boolean).join(' · ')}`;
 });
 sphere.addEventListener('pointerleave', () => { caption.textContent = hint(); });
+// ---- Project list beside the sphere: hover/focus spins that project's card to the front, click opens it.
+let target = null; // [rx, ry] in degrees, or null to free-spin
+function aim(p) {
+  const t = p == null ? null : tiles.find(t => +t.el.dataset.p === p);
+  target = t && [Math.atan2(t.y, Math.hypot(t.x, t.z)) / D, Math.atan2(-t.x, t.z) / D];
+  for (const x of tiles) x.el.classList.toggle('lit', x === t);
+  caption.textContent = t ? `▸ ${[P[p].title, P[p].type, P[p].year].filter(Boolean).join(' · ')}` : hint();
+}
+const plist = $('#projects');
+plist.innerHTML = P.map((p, i) => `<li>${p.images?.length // photo thumbnail when there is one; otherwise just a bigger name
+  ? `<button class="pl" data-sheet="${i}"><span class="mini"><img src="${thumb(p.images[0])}" alt="" loading="lazy"></span>`
+  : `<button class="pl no-img" data-sheet="${i}">`}`
+  + `<span><b>${esc(p.title)}</b><small>#${String(i + 1).padStart(2, '0')}${p.type || p.year ? ` · ${meta(p)}` : ''}</small></span></button></li>`).join('');
+for (const ev of ['pointerover', 'focusin']) plist.addEventListener(ev, e => { const b = e.target.closest('[data-sheet]'); if (b) aim(+b.dataset.sheet); });
+plist.addEventListener('pointerleave', () => aim(null));
+plist.addEventListener('focusout', e => { if (!plist.contains(e.relatedTarget)) aim(null); });
 new ResizeObserver(build).observe(stage); // also does the first build
 requestAnimationFrame(tick);
 
@@ -273,10 +295,11 @@ tbody.onclick = e => { if (!getSelection().toString() && !e.target.closest('a'))
 
 // ---- Global input
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-open],[data-cmd],[data-f],#full,.x');
+  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-f],#full,.x');
   if (!t) return;
   const d = t.dataset;
   if (t.id === 'full') setFull(!isFull());
+  else if (d.sheet) openProject(+d.sheet);
   else if (d.open) run(`open ${+d.open + 1}`);
   else if (d.cmd) run(d.cmd);
   else if (d.f) t.closest('.win').querySelector('.portrait').innerHTML = media(d.f, true);
