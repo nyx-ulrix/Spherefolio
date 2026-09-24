@@ -3,10 +3,11 @@
     "name": "Malcolm Liew Jia En",
     "role": "Computer Engineering Undergraduate @ SIT",
     "location": "Singapore",
-    "summary": "Computer Engineering undergraduate at SIT with a Diploma in Game Design and Development. Builds end-to-end products across web, desktop, mobile, and embedded (React, TypeScript, Python, Electron, Flutter, Unity), integrating AI/LLMs, computer vision, and robotics. Two-time hackathon builder and former web developer and game design intern, interested in software engineering, data analytics, and process optimisation.",
+    "summary": "Computer Engineering undergraduate at SIT with a Diploma in Game Design and Development. Builds end-to-end products across web, desktop, mobile, and embedded (React, TypeScript, Python, Electron, Flutter, Unity), integrating AI/LLMs, computer vision, and robotics. Hackathon winner and former web developer and game design intern, interested in software engineering, data analytics, and process optimisation.",
     "links": "GitHub | https://github.com/nyx-ulrix\nLinkedIn | https://www.linkedin.com/in/malcolmliewjiaen/\nEmail | mailto:malcolmliew.je@gmail.com",
     "accent": "#ff0490",
-    "accent2": "#f9a8ce"
+    "accent2": "#f9a8ce",
+    "banner": "M   M   A   L      CCC   OOO  L     M   M       L     III EEEEE W   W         JJJ III   A         EEEEE N   N\nMM MM  A A  L     C   C O   O L     MM MM       L      I  E     W   W          J   I   A A        E     NN  N\nM M M AAAAA L     C     O   O L     M M M       L      I  EEEE  W W W          J   I  AAAAA       EEEE  N N N\nM   M A   A L     C   C O   O L     M   M       L      I  E     W W W       J  J   I  A   A       E     N  NN\nM   M A   A LLLLL  CCC   OOO  LLLLL M   M       LLLLL III EEEEE  W W         JJ   III A   A       EEEEE N   N"
   },
   "sphere": {
     "size": 0.38,

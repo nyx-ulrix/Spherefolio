@@ -36,10 +36,40 @@ document.title = `${site.name} · Portfolio`;
 document.documentElement.style.setProperty('--accent', site.accent || '#ff0490');
 document.documentElement.style.setProperty('--pink', site.accent2 || '#f9a8ce'); // secondary colour; light mode deepens it (CSS)
 
+// The name as ASCII art (site.banner) wherever the name is shown; falls back to plain text when there's none.
+function banner() { return site.banner ? `<pre class="banner" role="img" aria-label="${esc(site.name)}">${esc(site.banner)}</pre>` : ''; }
+
+// Spinning ASCII donut (a1k0n's donut.c): a z-buffered torus shaded with .,-~:;=!*#$@
+function donutFrame(A, B, W = 34, H = 17) {
+  const px = Array(W * H).fill(' '), zb = Array(W * H).fill(0), cA = Math.cos(A), sA = Math.sin(A), cB = Math.cos(B), sB = Math.sin(B);
+  for (let j = 0; j < 6.28; j += .07) {
+    const ct = Math.cos(j), st = Math.sin(j);
+    for (let i = 0; i < 6.28; i += .02) {
+      const sp = Math.sin(i), cp = Math.cos(i), h = ct + 2, D = 1 / (sp * h * sA + st * cA + 5), t = sp * h * cA - st * sA;
+      const x = 0 | (W / 2 + W * .68 * D * (cp * h * cB - t * sB)), y = 0 | (H / 2 + W * .34 * D * (cp * h * sB + t * cB)), o = x + W * y;
+      const N = 0 | (8 * ((st * sA - sp * ct * cA) * cB - sp * ct * sA - st * cA - cp * ct * sB));
+      if (y >= 0 && y < H && x >= 0 && x < W && D > zb[o]) { zb[o] = D; px[o] = '.,-~:;=!*#$@'[N > 0 ? N : 0]; }
+    }
+  }
+  return Array.from({ length: H }, (_, r) => px.slice(r * W, r * W + W).join('')).join('\n');
+}
+function spinDonut(el) { // ~20 fps, only while on screen; one still frame for reduced motion
+  el.textContent = donutFrame(1, 1); // draw straight away, never blank
+  if (still) return;
+  let last = 0, seen = true;
+  new IntersectionObserver(([e]) => { seen = e.isIntersecting; }).observe(el);
+  const step = now => {
+    if (!el.isConnected) return; // `clear` removed it
+    if (seen && now - last > 50) { last = now; el.textContent = donutFrame(now / 900, now / 1800); }
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
 // ---- About me: each section is a native <details> dropdown; Summary starts open.
 const drop = (name, count, html, open) => `<details${open ? ' open' : ''}><summary>${esc(name)}${count ? `<span class="dim">${count}</span>` : ''}</summary>${html}</details>`;
 $('#about-body').innerHTML = `
-  <h2>${esc(site.name)}</h2><p class="muted">${esc(site.role)} · ${esc(site.location)}</p>
+  ${banner() || `<h2>${esc(site.name)}</h2>`}<p class="muted">${esc(site.role)} · ${esc(site.location)}</p>
   ${linkBtns(site.links)}
   ${drop('Summary', 0, `<p>${esc(site.summary)}</p>`, true)}
   ${resume.map(r => drop(r.name, r.items.length, r.items.map(entry).join(''))).join('')}`;
@@ -189,6 +219,7 @@ function openWin(id, title, html) {
   $('.body', w).innerHTML = html;
   $('.body', w).scrollTop = 0;
   center(w);
+  return w;
 }
 
 // Details close when you interact outside them, click another project, or rest (350 ms) on another visible
@@ -211,17 +242,21 @@ function openProject(i) {
   const p = P[i], im = p.images || [];
   const head = `<div><h2>${esc(p.title)}</h2><p class="muted">${esc(p.tagline)}</p>
     <dl class="stats">${stat('Year', p.year)}${stat('Type', p.type)}${stat('Slot', `#${String(i + 1).padStart(2, '0')}`)}</dl></div>`;
-  // Media on top, click any item to open it full size in the viewer (‹ › to flip). Layouts: one = single large item;
-  // pair = two side by side; feat = cover large on the left, the rest stacked beside it (pair/feat ≥ ~30% of the screen).
-  const n = im.length, big = j => n === 1 || (n > 2 && j === 0); // these get the full-res image, not the 480px thumb
+  // Media on top as a strip of large images (full resolution, up to ~520px tall) that scrolls sideways when there are
+  // several; click any one to open it full size in the viewer (‹ › to flip).
   const tile = (f, j) => `<button class="mthumb" data-v="${j}" aria-label="View ${isVid(f) ? 'video' : 'image'} ${j + 1}">`
-    + `<img src="${big(j) && !isVid(f) ? src(f) : thumb(f)}" alt="">${isVid(f) ? '<i class="badge">▶</i>' : ''}</button>`;
-  const grid = n === 1 ? '<div class="mgrid one">' : n === 2 ? '<div class="mgrid pair">'
-    : `<div class="mgrid feat" style="grid-template-columns:2fr repeat(${Math.ceil((n - 1) / 2)}, 1fr)">`;
-  openWin('win-project', p.title, `
-    ${n ? `${grid}${im.map(tile).join('')}</div>${head}` : `<div class="sheet-top"><div class="portrait">${card(p, i)}</div>${head}</div>`}
+    + `<img src="${isVid(f) ? thumb(f) : src(f)}" alt="">${isVid(f) ? '<i class="badge">▶</i>' : ''}</button>`;
+  const w = openWin('win-project', p.title, `
+    ${im.length ? `<div class="strip">${im.map(tile).join('')}</div>${head}` : `<div class="sheet-top"><div class="portrait">${card(p, i)}</div>${head}</div>`}
     ${chips(p.tools)}${bullets(p.text)}${linkBtns(p.links)}
     <div class="viewer" hidden><button class="vx btn" aria-label="Back to project">✕</button><button class="vnav" data-step="-1" aria-label="Previous">‹</button><div class="vmedia"></div><button class="vnav" data-step="1" aria-label="Next">›</button></div>`);
+  // A mouse wheel over the strip scrolls it sideways, until it reaches an end (then the popup scrolls as normal).
+  $('.strip', w)?.addEventListener('wheel', e => {
+    const s = e.currentTarget, dy = e.deltaY;
+    if (Math.abs(dy) <= Math.abs(e.deltaX) || (dy > 0 ? s.scrollLeft + s.clientWidth >= s.scrollWidth - 1 : s.scrollLeft <= 0)) return;
+    s.scrollLeft += dy;
+    e.preventDefault();
+  }, { passive: false });
 }
 function view(j) {
   const im = P[openP].images, v = $('#win-project .viewer');
@@ -284,7 +319,7 @@ ${esc(p.tagline)}
 ${lines(p.text).map(l => ` • ${esc(l)}`).join('\n')}
 ${links(p.links).map(ext).join(' ')}${im.length ? '\n' + im.map(f => `<img src="${thumb(f)}" alt="">`).join('') : ''}`);
   },
-  whoami: () => print(`<b class="hl">${esc(site.name)}</b> · ${esc(site.role)} · ${esc(site.location)}\n\n${esc(site.summary)}\n\n${links(site.links).map(ext).join(' ')}`),
+  whoami: () => print(`${banner() || `<b class="hl">${esc(site.name)}</b>\n`}${esc(site.role)} · ${esc(site.location)}\n\n${esc(site.summary)}\n\n${links(site.links).map(ext).join(' ')}`),
   clear: () => { out.innerHTML = ''; },
 };
 for (const r of resume) cmds[key(r.name)] = () => print(`<b class="hl">── ${esc(r.name)} ──</b>` + r.items.map(it =>
@@ -324,10 +359,16 @@ function run(line) {
   const [c, ...a] = line.split(/\s+/), name = c.toLowerCase();
   Object.hasOwn(cmds, name) ? cmds[name](a.join(' ')) : print(`command not found: ${esc(c)} · type ${cmd('help')}`);
 }
+// Boot splash: the ASCII name with a spinning donut beside it (or the plain name), then the hints.
 [`<span class="dim">SPHEREFOLIO OS v1.0.3 · link established · latency 1ms · ${P.length} projects · ${resume.length} dossiers</span>`,
-  `<b class="hl">${esc(site.name)}</b> · ${esc(site.role)}`,
+  site.banner ? ['splash', `${banner()}<pre class="donut" aria-hidden="true"></pre>`] : `<b class="hl">${esc(site.name)}</b>`,
+  esc(site.role),
   `type ${cmd('help')} or try ${cmd('ls')} ${cmd('stack')} ${cmd('whoami')} ${resume.slice(0, 2).map(r => cmd(key(r.name))).join(' ')} · click the prompt for suggestions`, '',
-].forEach((l, i) => setTimeout(() => print(l), i * 110));
+].forEach((l, i) => setTimeout(() => {
+  if (!Array.isArray(l)) return print(l);
+  print(l[1], l[0]);
+  spinDonut(out.lastElementChild.querySelector('.donut'));
+}, i * 110));
 $('#term-form').onsubmit = e => { e.preventDefault(); run(tin.value); tin.value = ''; };
 tin.onkeydown = e => {
   const first = !sug.hidden && sug.querySelector('[data-cmd]');

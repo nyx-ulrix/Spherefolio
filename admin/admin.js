@@ -64,6 +64,7 @@ function render() {
     ed.innerHTML = `<h2>Site &amp; UI</h2>
       <h3>Identity</h3>
       <div class="grid">${field('Name', 'site.name')}${field('Headline', 'site.role')}${field('Location', 'site.location')}${field('Accent colour', 'site.accent', 'color')}${field('Secondary colour', 'site.accent2', 'color')}</div>
+      ${field('Name banner (ASCII art shown instead of your name; leave empty for plain text)', 'site.banner', 'area')}
       ${field('Summary', 'site.summary', 'area')}
       ${field('Contact links (one per line: Label | https://… or mailto:…)', 'site.links', 'area')}
       <h3>Sphere</h3>

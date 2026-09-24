@@ -20,8 +20,10 @@
   --shade: #000;                 /* letterbox behind media */
   --shadow: #000a;
   --glow: color-mix(in srgb, var(--accent) 55%, transparent);
-  --font: "Signika", system-ui, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  /* SF Mono everywhere. Apple doesn't allow serving it as a web font, so Apple devices use their built-in copy
+     and everyone else falls back to JetBrains Mono (loaded from Google Fonts), which is very close. */
+  --font: "SF Mono", SFMono-Regular, ui-monospace, Menlo, "JetBrains Mono", Consolas, monospace;
+  --mono: var(--font);
   color-scheme: dark;
 }
 :root[data-theme=light] {
@@ -48,7 +50,7 @@
 [hidden] { display: none !important }
 html, body { margin: 0; height: 100% }
 body {
-  overflow: hidden; color: var(--text); font: 15px/1.5 var(--font);
+  overflow: hidden; color: var(--text); font: 14px/1.5 var(--font);
   background:
     radial-gradient(ellipse at 20% 20%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
     radial-gradient(ellipse at 85% 90%, color-mix(in srgb, var(--pink) 10%, transparent), transparent 60%), var(--bg);
@@ -128,6 +130,15 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .full #sphere-panel { position: fixed; inset: 0; z-index: 15; height: auto; background: var(--bg); border: 0; border-radius: 0 }
 body:not(.full) #stage { cursor: zoom-in }
 
+/* ASCII name banner (109 columns) scales with its panel via container units so it always fits on one line;
+   in the terminal it shares the line with the spinning donut. */
+#about .body, #term .body { container-type: inline-size }
+.banner { margin: 0 0 8px; font: inherit; line-height: 1.15; white-space: pre }
+#about .banner { font-size: min(10px, 1.45cqw) }
+#term-out > .splash { display: flex; align-items: center; gap: 2.5ch; margin: 6px 0 10px; font-size: min(12px, 1.2cqw); line-height: 1.15; white-space: pre; overflow: hidden }
+.splash .banner { margin: 0 }
+.donut { margin: 0; color: var(--accent); font: inherit; font-size: .6em; line-height: 1.1 }
+
 /* About me */
 #about h2 { font-size: 24px }
 #about .links { margin: 10px 0 14px }
@@ -146,20 +157,12 @@ body:not(.full) #stage { cursor: zoom-in }
 .x { padding: 0 6px; background: none; border: 0; color: var(--muted); font-size: 15px }
 .x:hover { color: var(--accent) }
 .win .body { flex: 1; min-height: 0; overflow: auto; padding: 14px 16px 16px }
-.mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-bottom: 14px }
-.mgrid.one { grid-template-columns: 1fr }
-.mthumb { position: relative; aspect-ratio: 4 / 3; padding: 0; overflow: hidden; background: var(--shade); border: 1px solid var(--line); border-radius: 4px; cursor: zoom-in }
-.mgrid.one .mthumb { aspect-ratio: auto; height: min(420px, 45dvh, 75vw) }
-.mthumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: scale .2s ease }
-.mgrid.one .mthumb img { object-fit: contain }
-/* Multi-image projects get a showcase block at least ~30% of the screen tall. */
-.mgrid.pair, .mgrid.feat { height: max(32dvh, 240px) }
-.mgrid.pair { grid-template-columns: 1fr 1fr }
-.mgrid.feat { grid-template-rows: 1fr 1fr }
-.mgrid.feat .mthumb:first-child { grid-row: span 2 }
-.mgrid.pair .mthumb, .mgrid.feat .mthumb { aspect-ratio: auto; min-height: 0 }
+/* Media strip: every image large (natural shape, up to ~520px tall), scrolling sideways when there are several. */
+.strip { display: flex; gap: 10px; margin: 0 -16px 14px; padding: 0 16px 8px; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding: 0 16px }
+.mthumb { position: relative; flex: none; max-width: 100%; height: min(56dvh, 520px); padding: 0; overflow: hidden; background: var(--shade); border: 1px solid var(--line); border-radius: 6px; scroll-snap-align: start; cursor: zoom-in }
+.mthumb img { display: block; width: auto; max-width: 100%; height: 100%; object-fit: contain; transition: scale .2s ease }
 .mthumb:hover, .mthumb:focus-visible { border-color: var(--accent); outline: none }
-.mthumb:hover img { scale: 1.04 }
+.mthumb:hover img { scale: 1.03 }
 .badge { position: absolute; left: 6px; top: 4px; color: #fff; font-size: 13px; font-style: normal; text-shadow: 0 0 3px #000, 0 0 3px #000 }
 .viewer { position: absolute; inset: 35px 0 0; z-index: 2; display: grid; grid-template: 100% / 48px minmax(0, 1fr) 48px; background: color-mix(in srgb, var(--bg) 97%, transparent); border-radius: 0 0 6px 6px }
 .vmedia { grid-column: 2; display: grid; place-items: center; min-height: 0; padding: 14px 0 }
@@ -231,5 +234,4 @@ body:not(.full) #stage { cursor: zoom-in }
   .sheet-top { grid-template-columns: 1fr }
   #term .body { font-size: 13px }
   .sg-row > span { flex-basis: 100% }
-  .mgrid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) }
 }
