@@ -18,11 +18,7 @@
 html, body { margin: 0; height: 100% }
 body {
   overflow: hidden; color: var(--text); font: 15px/1.5 var(--font);
-  background:
-    radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 65%),
-    linear-gradient(rgba(255, 255, 255, .028) 1px, transparent 1px) 0 0 / 64px 64px,
-    linear-gradient(90deg, rgba(255, 255, 255, .028) 1px, transparent 1px) 0 0 / 64px 64px,
-    var(--bg);
+  background: radial-gradient(ellipse at 30% 30%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 60%), var(--bg);
 }
 a { color: var(--accent) }
 button, input, textarea { font: inherit; color: inherit }
@@ -36,47 +32,55 @@ input[type=color] { height: 34px; cursor: pointer }
 :focus-visible { outline: 1px solid var(--accent); outline-offset: 2px }
 .muted, .dim { color: var(--muted) }
 .hl { color: var(--accent) }
+.kicker { color: var(--accent); font: 11px var(--mono); letter-spacing: .22em; text-transform: uppercase }
 h2 { margin: 0; font-size: 22px; font-weight: 600; line-height: 1.15 }
 h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--line); color: var(--gold); font: 11px var(--mono); letter-spacing: .14em; text-transform: uppercase }
-
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; background: var(--raise); border: 1px solid var(--line); border-radius: 4px; color: var(--text); font-size: 13px; text-decoration: none }
 .btn:hover:not(:disabled), .btn:focus-visible { border-color: var(--accent); box-shadow: 0 0 8px var(--glow); outline: none }
 .btn.danger:hover:not(:disabled) { border-color: #e0413a; box-shadow: 0 0 8px #e0413a88 }
-.ctl { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 5px; color: var(--text) }
-.ctl:hover, .ctl.on { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 10px var(--glow) }
-svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round }
+
+/* Layout: sphere top-left, About me top-right, terminal across the bottom. */
+.site { display: grid; grid-template: minmax(0, 1.5fr) minmax(0, 1fr) / minmax(0, 1.65fr) minmax(300px, 1fr); gap: 10px; height: 100dvh; padding: 10px }
+.site #term { grid-column: 1 / -1 }
+.panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 30px #0009 }
+.panel > header, .win > header { display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 6px 8px 6px 12px; background: rgba(0, 0, 0, .45); border-bottom: 1px solid var(--line); user-select: none }
+.panel > header b, .win > header b { flex: 1; overflow: hidden; font-size: 13px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis }
+.panel > header .btn { padding: 1px 8px; font-size: 11px }
+.panel > .body { flex: 1; min-height: 0; overflow: auto; padding: 14px 16px 16px }
+#status { font: 11px var(--mono); letter-spacing: .06em; white-space: nowrap }
 
 /* Sphere: perspective on the stage, preserve-3d on the rotating wrapper, tiles placed once. */
-#stage { position: fixed; inset: 0; display: grid; place-items: center; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab }
+#stage { position: relative; flex: 1; min-height: 0; overflow: hidden; display: grid; place-items: center; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab;
+  background:
+    radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
+    linear-gradient(rgba(255, 255, 255, .03) 1px, transparent 1px) 50% 50% / 48px 48px,
+    linear-gradient(90deg, rgba(255, 255, 255, .03) 1px, transparent 1px) 50% 50% / 48px 48px }
 #stage:active { cursor: grabbing }
 #sphere { position: relative; width: 0; height: 0; transform-style: preserve-3d; will-change: transform }
-.tile { position: absolute; left: 0; top: 0; width: var(--w); height: var(--h); margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2); padding: 0; overflow: hidden; background: #14111d; border: 1px solid var(--line); border-radius: 6px; color: var(--text); font-size: calc(var(--w) * .085); cursor: pointer }
-.tile:hover, .tile:focus-visible { border-color: var(--accent); box-shadow: 0 0 18px var(--glow); outline: none }
-.tile img, .mini img, .portrait img { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none }
-.card { display: flex; flex-direction: column; justify-content: flex-end; gap: .25em; width: 100%; height: 100%; padding: .7em; text-align: left;
-  background: radial-gradient(circle at 85% 10%, hsl(var(--hue) 85% 50% / .5), transparent 60%), linear-gradient(160deg, hsl(var(--hue) 40% 17%), #0a0911 85%) }
-.card b { font-weight: 600; line-height: 1.12 }
-.card small { color: var(--muted); font: .62em var(--mono); letter-spacing: .08em; text-transform: uppercase }
+
+/* Tiles are picture frames: gilded moulding, dark mat, the picture (upload or generated landscape), brass title plate. */
+.tile { position: absolute; left: 0; top: 0; width: var(--w); height: var(--h); margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2); padding: .34em; border: 0; border-radius: 2px; color: inherit; font-size: calc(var(--w) * .085); cursor: pointer;
+  background: linear-gradient(135deg, #7a5c30, #3b2b15 22%, #c9a060 48%, #4a3719 72%, #8e6d3a);
+  box-shadow: inset 0 0 0 1px #0009, inset 0 0 0 .1em #ffe3a633, 0 .15em .5em #000a }
+.tile:hover, .tile:focus-visible { outline: 1px solid var(--accent); box-shadow: inset 0 0 0 1px #0009, 0 0 1.4em var(--glow) }
+.pic { display: block; width: 100%; height: 100%; padding: .24em; background: #16121c; box-shadow: inset 0 0 0 1px #000c, inset 0 .2em .5em #000c }
+.pic > *, .portrait > *, .mini > * { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none }
+.plate { position: absolute; left: 50%; bottom: .02em; max-width: 76%; overflow: hidden; padding: 0 .6em; transform: translateX(-50%); background: linear-gradient(#ecd49a, #a8844a); border-radius: 1px; box-shadow: 0 1px 2px #000b; color: #221708; font: 600 .62em/1.5 var(--font); white-space: nowrap; text-overflow: ellipsis }
+.art { background:
+    radial-gradient(circle at var(--sx) 30%, hsl(var(--hue) 95% 78%) 0 6%, hsl(var(--hue) 95% 65% / .35) 7% 13%, transparent 14%),
+    linear-gradient(166deg, transparent 57%, hsl(var(--hue) 35% 15%) 57.4%),
+    linear-gradient(196deg, transparent 67%, hsl(var(--hue) 45% 9%) 67.4%),
+    linear-gradient(hsl(var(--hue) 55% 44%), hsl(calc(var(--hue) + 50) 45% 16%)) }
 .mini { display: block; width: 100%; height: 100% }
-.mini .card { justify-content: center; align-items: center; padding: 0; font: 600 14px var(--font) }
 
-/* Foundry chrome: scene controls (left), scene nav (top), sidebar dock (right), hotbar (bottom). */
-#controls { position: fixed; left: 10px; top: 10px; z-index: 10; display: flex; flex-direction: column; gap: 6px }
-#scene-nav { position: fixed; left: 60px; top: 10px; z-index: 10; display: flex; gap: 4px; max-width: calc(100vw - 120px) }
-#scene-nav span { padding: 9px 14px; overflow: hidden; background: var(--panel); border: 1px solid var(--line); border-radius: 5px; font-size: 13px; white-space: nowrap; text-overflow: ellipsis }
-#scene-nav .on { border-color: var(--gold) }
-#sidebar { position: fixed; right: 10px; top: 10px; z-index: 10; display: flex; flex-direction: column; gap: 6px }
-#hotbar { position: fixed; left: 50%; bottom: 10px; z-index: 10; padding: 4px; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--line); border-radius: 6px }
-#slots { display: flex; gap: 4px }
-.slot { position: relative; width: 50px; height: 50px; padding: 0; overflow: hidden; background: rgba(0, 0, 0, .45); border: 1px solid var(--line); border-radius: 4px }
-button.slot:hover { border-color: var(--accent); box-shadow: 0 0 8px var(--glow) }
-.slot i { position: absolute; left: 4px; top: 1px; z-index: 1; font: 700 11px var(--mono); text-shadow: 0 0 3px #000, 0 0 3px #000 }
-#status { position: fixed; left: 10px; bottom: 10px; z-index: 10; padding: 5px 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; color: var(--muted); font: 11px var(--mono); letter-spacing: .06em }
+/* About me */
+#about h2 { font-size: 24px }
+#about .links { margin-top: 10px }
+#about .entry > b { font-size: 14px }
 
-/* Windows (item / actor sheets) */
-.win { position: fixed; z-index: 20; display: flex; flex-direction: column; width: min(580px, calc(100vw - 16px)); max-height: calc(100dvh - 90px); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 12px 48px #000c; backdrop-filter: blur(8px) }
-.win > header { display: flex; align-items: center; gap: 8px; padding: 7px 8px 7px 12px; background: rgba(0, 0, 0, .45); border-bottom: 1px solid var(--line); border-radius: 6px 6px 0 0; cursor: move; user-select: none; touch-action: none }
-.win > header b { flex: 1; overflow: hidden; font-size: 13px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis }
+/* Windows (project sheets) */
+.win { position: fixed; z-index: 20; display: flex; flex-direction: column; width: min(580px, calc(100vw - 16px)); max-height: calc(100dvh - 40px); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 12px 48px #000c; backdrop-filter: blur(8px) }
+.win > header { border-radius: 6px 6px 0 0; cursor: move; touch-action: none }
 .x { padding: 0 6px; background: none; border: 0; color: var(--muted); font-size: 15px }
 .x:hover { color: var(--accent) }
 .win .body { overflow: auto; padding: 14px 16px 16px }
@@ -86,7 +90,7 @@ button.slot:hover { border-color: var(--accent); box-shadow: 0 0 8px var(--glow)
 .stats div { padding: 4px 8px; background: var(--raise); border: 1px solid var(--line); border-radius: 4px }
 .stats dt { overflow: hidden; color: var(--muted); font: 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis }
 .stats dd { margin: 0; font-weight: 600 }
-.chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 12px 0 }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 }
 .chips span { padding: 1px 9px; border: 1px solid var(--line); border-radius: 99px; color: var(--muted); font-size: 12px }
 .body p { margin: 8px 0 }
 .body ul { margin: 8px 0; padding-left: 18px }
@@ -110,9 +114,9 @@ button.slot:hover { border-color: var(--accent); box-shadow: 0 0 8px var(--glow)
 .comp b { overflow: hidden; font-weight: 400; white-space: nowrap; text-overflow: ellipsis }
 .comp small { color: var(--muted); font: 11px var(--mono) }
 
-/* Terminal view */
-#term { display: none; position: fixed; inset: 0; z-index: 5; overflow: auto; padding: 20px 20px 40px 66px; color: #d9d0c1; font: 14px/1.6 var(--mono);
-  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .022) 0 1px, transparent 1px 3px), radial-gradient(ellipse at 50% 30%, #120e18, #040307 75%) }
+/* Terminal */
+#term .body { color: #d9d0c1; font: 14px/1.6 var(--mono); cursor: text;
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .022) 0 1px, transparent 1px 3px), #050409 }
 #term-out > div { white-space: pre-wrap; overflow-wrap: anywhere }
 #term-out > .pre { white-space: pre; overflow-x: auto }
 #term a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted; cursor: pointer }
@@ -121,28 +125,13 @@ button.slot:hover { border-color: var(--accent); box-shadow: 0 0 8px var(--glow)
 #term-in { flex: 1; padding: 0; background: none; border: 0; caret-color: var(--accent) }
 #term-in:focus { box-shadow: none; outline: none }
 
-/* Start screen */
-#start { display: none; position: fixed; inset: 0; z-index: 50; place-items: center; padding: 16px; background: rgba(4, 3, 8, .5); backdrop-filter: blur(3px) }
-.start-card { width: min(480px, 100%); padding: 28px 24px 22px; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 20px 60px #000d }
-.kicker { color: var(--accent); font: 11px var(--mono); letter-spacing: .22em; text-transform: uppercase }
-.start-card h1 { margin: 10px 0 4px; font-size: 30px; font-weight: 600; line-height: 1.1 }
-.start-card p { margin: 0 }
-.start-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 24px 0 14px }
-.start-btns button { display: grid; justify-items: center; gap: 6px; padding: 18px 10px 14px; background: var(--raise); border: 1px solid var(--line); border-radius: 6px; font-size: 17px; font-weight: 600 }
-.start-btns button:hover, .start-btns button:focus-visible { border-color: var(--accent); box-shadow: 0 0 14px var(--glow); outline: none }
-.start-btns svg.i { width: 34px; height: 34px; color: var(--accent) }
-.start-btns small { color: var(--muted); font: 400 11px var(--mono) }
-
-/* Modes */
-body[data-mode=start] #start { display: grid }
-body[data-mode=term] #term { display: block }
-body[data-mode=start] :is(#controls, #scene-nav, #sidebar, #hotbar, #status, .win),
-body[data-mode=term] :is(#stage, #scene-nav, #sidebar, #hotbar, #status, .win) { display: none }
-
-@media (max-width: 960px) { #status { display: none } }
-@media (max-width: 700px) {
-  #hotbar, #scene-nav span + span { display: none }
-  .win { left: 8px !important; top: 58px !important; max-height: calc(100dvh - 66px) }
+@media (max-width: 800px) {
+  .site { display: flex; flex-direction: column; height: auto; min-height: 100dvh; overflow: auto }
+  .site .panel { flex: none }
+  #sphere-panel { height: 62vh }
+  #term { height: 75vh }
+  #stage { touch-action: pan-y }
   .sheet-top { grid-template-columns: 1fr }
-  #term { padding: 62px 12px 40px; font-size: 13px }
+  .win { left: 8px !important; top: 8px !important; max-height: calc(100dvh - 16px) }
+  #term .body { font-size: 13px }
 }

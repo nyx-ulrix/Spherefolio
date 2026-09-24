@@ -4,14 +4,14 @@
     "role": "Computer Engineering Undergraduate @ SIT",
     "location": "Singapore",
     "summary": "Computer Engineering undergraduate at the Singapore Institute of Technology with a Diploma in Game Design and Development and hands-on experience shipping full-stack web, desktop, mobile, and embedded software. Builds end-to-end products across React, TypeScript, Python, Electron, Flutter, and Unity, with a strong foundation in data structures, algorithm analysis, and optimisation. Experienced in integrating AI and LLM services (Google Gemini, OpenAI, Agnes AI), computer vision models (YOLOv8, MobileCLIP), cloud and backend platforms (Supabase, Vercel, Docker, Cloudflare), and robotics tooling (ROS 2, MQTT, WebRTC, LiDAR). Two-time hackathon builder and former web developer and game design intern, with proven cross-functional communication, data integrity, and event leadership skills. Interested in software engineering, data analytics, and process optimisation.",
-    "links": "Email | mailto:malcolmliew.je@gmail.com\nLinkedIn | https://www.linkedin.com/in/malcolmliewjiaen/\nGitHub | https://github.com/nyx-ulrix",
+    "links": "GitHub | https://github.com/nyx-ulrix\nLinkedIn | https://www.linkedin.com/in/malcolmliewjiaen/\nEmail | mailto:malcolmliew.je@gmail.com",
     "accent": "#ff6400"
   },
   "sphere": {
-    "size": 0.36,
+    "size": 0.38,
     "fill": 0.8,
     "spin": 0.06,
-    "minTiles": 36
+    "minTiles": 24
   },
   "projects": [
     {
@@ -207,6 +207,83 @@
   ],
   "resume": [
     {
+      "name": "Skills",
+      "items": [
+        {
+          "title": "Programming Languages",
+          "org": "",
+          "when": "",
+          "text": "Python, TypeScript, JavaScript, C#, Dart, SQL, HTML, CSS, PowerShell"
+        },
+        {
+          "title": "Frontend",
+          "org": "",
+          "when": "",
+          "text": "React, Vite, Tailwind CSS, Radix UI, shadcn/ui, React Router, Webflow, Responsive and Mobile-First Design"
+        },
+        {
+          "title": "Backend and APIs",
+          "org": "",
+          "when": "",
+          "text": "Node.js, Hono, Flask, REST API Design, OAuth 2.0, Role-Based Access Control, Webhooks, MQTT, WebRTC"
+        },
+        {
+          "title": "Databases",
+          "org": "",
+          "when": "",
+          "text": "MariaDB, MySQL, PostgreSQL, MongoDB, SQLite, Supabase, IndexedDB (Dexie)"
+        },
+        {
+          "title": "Cloud, DevOps and Tools",
+          "org": "",
+          "when": "",
+          "text": "Docker, WSL2, Vercel, Cloudflare Tunnel, Caddy, GitHub Actions, Git, CI/CD, Electron, Shopify"
+        },
+        {
+          "title": "AI, Machine Learning and Computer Vision",
+          "org": "",
+          "when": "",
+          "text": "Google Gemini API, OpenAI API, LLM Integration, Prompt Engineering, YOLOv8, MobileCLIP, Vision Transformers, Embedding Similarity Search"
+        },
+        {
+          "title": "Robotics and Embedded",
+          "org": "",
+          "when": "",
+          "text": "ROS 2, Raspberry Pi, LiDAR, SLAM"
+        },
+        {
+          "title": "Mobile and Game Development",
+          "org": "",
+          "when": "",
+          "text": "Flutter, Unity, Game AI (Finite State Machines, Behaviour Trees)"
+        },
+        {
+          "title": "Data and Algorithms",
+          "org": "",
+          "when": "",
+          "text": "Data Structures and Algorithms, Algorithm Complexity Analysis, Graph Algorithms (Dijkstra's), Metaheuristic Optimisation (Ant Colony Optimisation), Branch and Bound, Dynamic Programming, NumPy, Matplotlib, Microsoft Excel, Power BI, Data Cleaning and Validation"
+        },
+        {
+          "title": "Soft Skills",
+          "org": "",
+          "when": "",
+          "text": "Analytical Thinking, Problem Solving, Cross-Functional Communication, Public Speaking, Emceeing, Community Engagement, Team Leadership, Event Management, Technical Documentation, Attention to Detail"
+        },
+        {
+          "title": "Languages",
+          "org": "",
+          "when": "",
+          "text": "English, Mandarin (Conversational)"
+        },
+        {
+          "title": "Interests",
+          "org": "",
+          "when": "",
+          "text": "Software Engineering, Data Analytics, Process Optimisation, Applied AI"
+        }
+      ]
+    },
+    {
       "name": "Experience",
       "items": [
         {
@@ -283,83 +360,6 @@
           "org": "Jia Ying (Active Ageing Centres), in partnership with DBS Foundation · Kovan Hub, Singapore",
           "when": "Jul 2026",
           "text": "Co-emceed a three-hour bilingual graduation celebration for approximately 300 seniors from Jia Ying's Active Ageing Centres, marking their completion of a one-year programme.\nHosted in English alongside a Mandarin-speaking co-emcee, coordinating segment handovers and timing so the programme flowed smoothly for a mixed-language audience.\nHosted the event programme, guided the audience through each segment, and engaged senior participants to keep the celebration lively and on schedule, conversing in Mandarin with Chinese-speaking seniors during interactive segments.\nCoordinated with organisers from Jia Ying, a registered charity with IPC status, to deliver a smooth community event."
-        }
-      ]
-    },
-    {
-      "name": "Skills",
-      "items": [
-        {
-          "title": "Programming Languages",
-          "org": "",
-          "when": "",
-          "text": "Python, TypeScript, JavaScript, C#, Dart, SQL, HTML, CSS, PowerShell"
-        },
-        {
-          "title": "Frontend",
-          "org": "",
-          "when": "",
-          "text": "React, Vite, Tailwind CSS, Radix UI, shadcn/ui, React Router, Webflow, Responsive and Mobile-First Design"
-        },
-        {
-          "title": "Backend and APIs",
-          "org": "",
-          "when": "",
-          "text": "Node.js, Hono, Flask, REST API Design, OAuth 2.0, Role-Based Access Control, Webhooks, MQTT, WebRTC"
-        },
-        {
-          "title": "Databases",
-          "org": "",
-          "when": "",
-          "text": "MariaDB, MySQL, PostgreSQL, MongoDB, SQLite, Supabase, IndexedDB (Dexie)"
-        },
-        {
-          "title": "Cloud, DevOps and Tools",
-          "org": "",
-          "when": "",
-          "text": "Docker, WSL2, Vercel, Cloudflare Tunnel, Caddy, GitHub Actions, Git, CI/CD, Electron, Shopify"
-        },
-        {
-          "title": "AI, Machine Learning and Computer Vision",
-          "org": "",
-          "when": "",
-          "text": "Google Gemini API, OpenAI API, LLM Integration, Prompt Engineering, YOLOv8, MobileCLIP, Vision Transformers, Embedding Similarity Search"
-        },
-        {
-          "title": "Robotics and Embedded",
-          "org": "",
-          "when": "",
-          "text": "ROS 2, Raspberry Pi, LiDAR, SLAM"
-        },
-        {
-          "title": "Mobile and Game Development",
-          "org": "",
-          "when": "",
-          "text": "Flutter, Unity, Game AI (Finite State Machines, Behaviour Trees)"
-        },
-        {
-          "title": "Data and Algorithms",
-          "org": "",
-          "when": "",
-          "text": "Data Structures and Algorithms, Algorithm Complexity Analysis, Graph Algorithms (Dijkstra's), Metaheuristic Optimisation (Ant Colony Optimisation), Branch and Bound, Dynamic Programming, NumPy, Matplotlib, Microsoft Excel, Power BI, Data Cleaning and Validation"
-        },
-        {
-          "title": "Soft Skills",
-          "org": "",
-          "when": "",
-          "text": "Analytical Thinking, Problem Solving, Cross-Functional Communication, Public Speaking, Emceeing, Community Engagement, Team Leadership, Event Management, Technical Documentation, Attention to Detail"
-        },
-        {
-          "title": "Languages",
-          "org": "",
-          "when": "",
-          "text": "English, Mandarin (Conversational)"
-        },
-        {
-          "title": "Interests",
-          "org": "",
-          "when": "",
-          "text": "Software Engineering, Data Analytics, Process Optimisation, Applied AI"
         }
       ]
     }

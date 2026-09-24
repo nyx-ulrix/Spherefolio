@@ -37,7 +37,7 @@ function renderList() {
   $('#count').textContent = `${P.length} / ${MAX} projects`;
   $('#new').disabled = P.length >= MAX;
   $('#plist').innerHTML = P.map((p, i) => !p.title.toLowerCase().includes(q) ? '' :
-    `<li><button data-pick="${i}"${view[0] === 'project' && view[1] === i ? ' class="on"' : ''}><span class="mini">${p.images[0] ? `<img src="${thumb(p.images[0])}" alt="">` : `<span class="card" style="--hue:${(i * 47 + 15) % 360}"></span>`}</span><b>${String(i + 1).padStart(2, '0')} · ${esc(p.title)}</b><small>${esc(p.type)}</small></button></li>`).join('');
+    `<li><button data-pick="${i}"${view[0] === 'project' && view[1] === i ? ' class="on"' : ''}><span class="mini">${p.images[0] ? `<img src="${thumb(p.images[0])}" alt="">` : `<span class="art" style="--hue:${(i * 47 + 15) % 360};--sx:${20 + (i * 29) % 60}%"></span>`}</span><b>${String(i + 1).padStart(2, '0')} · ${esc(p.title)}</b><small>${esc(p.type)}</small></button></li>`).join('');
 }
 
 function render() {
@@ -50,7 +50,7 @@ function render() {
         <button class="btn" data-act="up"${i ? '' : ' disabled'}>↑ Move up</button>
         <button class="btn" data-act="down"${i < data.projects.length - 1 ? '' : ' disabled'}>↓ Move down</button>
         <button class="btn danger" data-act="del">Delete</button></div>
-      <p class="muted">Slot #${i + 1}${i < 10 ? ` · on the hotbar (key ${(i + 1) % 10})` : ''}. Order here is the order on the site.</p>
+      <p class="muted">Slot #${i + 1}. Order here is the order on the site.</p>
       <div class="grid">${field('Title', `${b}title`)}${field('Tagline', `${b}tagline`)}${field('Year', `${b}year`)}${field('Type', `${b}type`)}</div>
       ${field('Tools (comma separated)', `${b}tools`)}
       ${field('Details (one bullet per line)', `${b}text`, 'area')}
