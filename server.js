@@ -16,6 +16,7 @@ const readBody = (req, max) => new Promise((resolve, reject) => {
 
 function liveUrl() {
   try {
+    if (fs.existsSync(path.join(SITE, 'CNAME'))) return `https://${fs.readFileSync(path.join(SITE, 'CNAME'), 'utf8').trim()}/`; // custom domain
     const [, owner, repo] = execSync('git remote get-url origin', { cwd: __dirname }).toString().trim().match(/github\.com[:/]([^/]+)\/(.+?)(?:\.git)?$/);
     return repo.toLowerCase() === `${owner.toLowerCase()}.github.io` ? `https://${repo}/` : `https://${owner.toLowerCase()}.github.io/${repo}/`;
   } catch { return 'https://github.com'; }

@@ -2,7 +2,7 @@
 
 My portfolio as one screen: a draggable 3D sphere of project cards (top left, click for fullscreen), a terminal with suggestions below it, and About me down the right. The UI is styled after Foundry VTT. It's a static site on GitHub Pages (free), and a small local dashboard edits it.
 
-**Live:** https://nyx-ulrix.github.io/Spherefolio/
+**Live:** https://liewjiaen.com
 
 ## Editing (on this PC)
 
