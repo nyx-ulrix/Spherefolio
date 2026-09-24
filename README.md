@@ -1,6 +1,6 @@
 # Spherefolio
 
-My portfolio as one screen: a draggable 3D sphere of project cards (top left, click for fullscreen), a terminal with suggestions below it, and About me down the right. The UI is styled after Foundry VTT. It's a static site on GitHub Pages (free), and a small local dashboard edits it.
+My portfolio as one screen: a draggable 3D sphere of project cards (top left, click for fullscreen), a terminal with suggestions below it, and About me down the right. The UI is styled after Foundry VTT, in dark or light mode (follows the system; toggle under About me). It's a static site on GitHub Pages (free), and a small local dashboard edits it.
 
 **Live:** https://liewjiaen.com
 

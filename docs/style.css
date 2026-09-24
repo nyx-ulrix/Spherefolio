@@ -1,17 +1,48 @@
-/* Spherefolio: Foundry VTT-style dark UI. Shared by the site (docs/) and the GM dashboard (admin/). */
+/* Spherefolio: Foundry VTT-style UI, dark or light. Shared by the site (docs/) and the GM dashboard (admin/). */
 :root {
   --accent: #ff6400;
+  --pink: #f9a8ce;              /* secondary colour (site.accent2); JS overrides it from data.json */
+  --accent2: var(--pink);
   --bg: #08070d;
   --panel: rgba(13, 12, 20, .93);
   --raise: rgba(255, 255, 255, .045);
   --line: rgba(239, 230, 216, .14);
-  --accent2: #b79cff;
   --text: #efe6d8;
   --muted: #9c9282;
+  --field: rgba(0, 0, 0, .35);   /* inputs */
+  --head: rgba(0, 0, 0, .45);    /* panel / window title bars */
+  --sunk: rgba(0, 0, 0, .22);    /* project list well */
+  --tile: #14111d;
+  --card-end: #0a0911;           /* empty-card gradient fades to this */
+  --term-bg: #050409;
+  --scan: rgba(255, 255, 255, .022);
+  --grid: rgba(255, 255, 255, .03);
+  --shade: #000;                 /* letterbox behind media */
+  --shadow: #000a;
   --glow: color-mix(in srgb, var(--accent) 55%, transparent);
   --font: "Signika", system-ui, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
   color-scheme: dark;
+}
+:root[data-theme=light] {
+  --accent2: color-mix(in srgb, var(--pink) 45%, #9a2459); /* deeper pink so text stays readable on white */
+  --bg: #f6f1ee;
+  --panel: rgba(255, 255, 255, .94);
+  --raise: rgba(40, 20, 40, .045);
+  --line: rgba(60, 40, 55, .15);
+  --text: #2a2130;
+  --muted: #7a6f7c;
+  --field: #fff;
+  --head: rgba(60, 40, 55, .05);
+  --sunk: rgba(60, 40, 55, .04);
+  --tile: #fff;
+  --card-end: #fff;
+  --term-bg: #fffafc;
+  --scan: rgba(60, 40, 55, .03);
+  --grid: rgba(60, 40, 55, .06);
+  --shade: #eee7ec;
+  --shadow: rgba(60, 30, 50, .2);
+  color-scheme: light;
 }
 *, *::before, *::after { box-sizing: border-box }
 [hidden] { display: none !important }
@@ -20,13 +51,13 @@ body {
   overflow: hidden; color: var(--text); font: 15px/1.5 var(--font);
   background:
     radial-gradient(ellipse at 20% 20%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
-    radial-gradient(ellipse at 85% 90%, color-mix(in srgb, var(--accent2) 8%, transparent), transparent 60%), var(--bg);
+    radial-gradient(ellipse at 85% 90%, color-mix(in srgb, var(--pink) 10%, transparent), transparent 60%), var(--bg);
 }
 a { color: var(--accent) }
 button, input, textarea { font: inherit; color: inherit }
 button { cursor: pointer }
 button:disabled { opacity: .4; cursor: default }
-input, textarea { width: 100%; padding: 6px 8px; background: rgba(0, 0, 0, .35); border: 1px solid var(--line); border-radius: 3px }
+input, textarea { width: 100%; padding: 6px 8px; background: var(--field); border: 1px solid var(--line); border-radius: 3px }
 textarea { resize: vertical; line-height: 1.45 }
 input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 6px var(--glow) }
 input[type=range], input[type=color] { padding: 0; accent-color: var(--accent) }
@@ -41,14 +72,13 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .btn:hover:not(:disabled), .btn:focus-visible { border-color: var(--accent); box-shadow: 0 0 8px var(--glow); outline: none }
 .btn.danger:hover:not(:disabled) { border-color: #e0413a; box-shadow: 0 0 8px #e0413a88 }
 
-/* Layout: sphere top-left, About me top-right, terminal across the bottom. */
-/* Sphere top-left (~30% of the screen, click → fullscreen), terminal below it, About me down the whole right side. */
+/* Layout: sphere top-left (~30% of the screen, click → fullscreen), terminal below it, About me down the whole right side. */
 .site { display: grid; grid-template: "sphere about" minmax(0, 43fr) "term about" minmax(0, 57fr) / minmax(0, 1fr) minmax(340px, 30%); gap: 10px; height: 100dvh; padding: 10px }
 #sphere-panel { grid-area: sphere }
 #about { grid-area: about }
 #term { grid-area: term }
-.panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 30px #0009 }
-.panel > header, .win > header { display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 6px 8px 6px 12px; background: rgba(0, 0, 0, .45); border-bottom: 1px solid var(--line); user-select: none }
+.panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 30px var(--shadow) }
+.panel > header, .win > header { display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 6px 8px 6px 12px; background: var(--head); border-bottom: 1px solid var(--line); user-select: none }
 .panel > header b, .win > header b { flex: 1; overflow: hidden; color: var(--accent2); font-size: 13px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis }
 .panel > header .btn { padding: 1px 8px; font-size: 11px }
 .panel > .body { flex: 1; min-height: 0; overflow: auto; padding: 14px 16px 16px }
@@ -57,28 +87,36 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 /* Sphere: perspective on the stage, preserve-3d on the rotating wrapper, tiles placed once. */
 #stage { position: relative; flex: 1; min-height: 0; overflow: hidden; display: grid; place-items: center; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab;
   background:
-    radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
-    linear-gradient(rgba(255, 255, 255, .03) 1px, transparent 1px) 50% 50% / 48px 48px,
-    linear-gradient(90deg, rgba(255, 255, 255, .03) 1px, transparent 1px) 50% 50% / 48px 48px }
+    radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--pink) 16%, transparent), transparent 60%),
+    linear-gradient(var(--grid) 1px, transparent 1px) 50% 50% / 48px 48px,
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 50% 50% / 48px 48px }
 #stage:active { cursor: grabbing }
 #sphere { position: relative; width: 0; height: 0; transform-style: preserve-3d; will-change: transform }
+.drag-hint { position: absolute; left: 50%; bottom: 10px; padding: 3px 12px; transform: translateX(-50%); background: var(--panel); border: 1px solid color-mix(in srgb, var(--accent2) 45%, transparent); border-radius: 99px; color: var(--accent2); font: 11px var(--mono); letter-spacing: .08em; white-space: nowrap; pointer-events: none; transition: opacity .5s }
+.dragged .drag-hint { opacity: 0 }
 
-/* Cards: gradient card when empty; an uploaded image/video replaces it, with the text on a scrim. Big title, details below. */
-.tile { position: absolute; left: 0; top: 0; width: var(--w); height: var(--h); margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2); padding: 0; overflow: hidden; background: #14111d; border: 1px solid var(--line); border-radius: 6px; color: var(--text); font-size: calc(var(--w) * .085); cursor: pointer }
-.tile:hover, .tile:focus-visible { border-color: var(--accent); box-shadow: 0 0 18px var(--glow); outline: none }
+/* Cards: pink gradient card when empty; an uploaded image/video replaces it, text on a dark scrim. Big title, details below. */
+.tile { position: absolute; left: 0; top: 0; width: var(--w); height: var(--h); margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2); padding: 0; overflow: hidden; background: var(--tile); border: 1px solid var(--line); border-radius: 6px; color: var(--text); font-size: calc(var(--w) * .085); cursor: pointer; transition: scale .2s ease, box-shadow .2s ease }
+.tile:hover, .tile:focus-visible, .tile.lit { border-color: var(--accent); box-shadow: 0 0 18px var(--glow); outline: none }
+/* Hover zoom: `scale` composes after the inline placement transform, so the card grows and lifts out of the sphere. */
+.tile:hover, .tile.lit { scale: 1.15 }
 .card { display: flex; flex-direction: column; gap: .3em; width: 100%; height: 100%; padding: .6em .7em; text-align: left;
-  background: radial-gradient(circle at 85% 10%, hsl(var(--hue) 85% 50% / .5), transparent 60%), linear-gradient(160deg, hsl(var(--hue) 40% 17%), #0a0911 85%) }
-.label { position: absolute; inset: 0 0 auto; display: flex; flex-direction: column; gap: .3em; padding: .55em .65em 1.6em; text-align: left; pointer-events: none;
+  background: radial-gradient(circle at 85% 10%, color-mix(in srgb, var(--pink) 55%, transparent), transparent 60%), linear-gradient(160deg, color-mix(in srgb, var(--pink) 22%, var(--card-end)), var(--card-end) 85%) }
+.label { position: absolute; inset: 0 0 auto; display: flex; flex-direction: column; gap: .3em; padding: .55em .65em 1.6em; color: #f4ede4; text-align: left; pointer-events: none;
   background: linear-gradient(rgba(6, 5, 11, .92), rgba(6, 5, 11, .68) 60%, transparent) }
-.card b, .label b { font-size: 1.3em; font-weight: 600; line-height: 1.08; text-shadow: 0 1px 3px #000 }
-.card span, .label span { display: -webkit-box; overflow: hidden; color: #ddd3c4; font-size: .72em; line-height: 1.25; -webkit-line-clamp: 2; -webkit-box-orient: vertical }
+.card b, .label b { font-size: 1.3em; font-weight: 600; line-height: 1.08 }
+.label b { text-shadow: 0 1px 3px #000 }
+.card span, .label span { display: -webkit-box; overflow: hidden; font-size: .72em; line-height: 1.25; -webkit-line-clamp: 2; -webkit-box-orient: vertical }
+.card span { color: color-mix(in srgb, var(--text) 80%, transparent) }
+.label span { color: #ddd3c4 }
 .card small, .label small { color: var(--accent2); font: .6em var(--mono); letter-spacing: .08em; text-transform: uppercase }
+.label small { color: var(--pink) }
 .media { position: absolute; inset: 0 }
 .media > *, .portrait > img, .portrait > video, .mini > * { display: block; width: 100%; height: 100%; object-fit: cover }
 .tile .media > * { pointer-events: none }
 .mini { display: block; width: 100%; height: 100% }
 .sphere-body { display: flex; flex: 1; min-height: 0 }
-#projects { flex: 0 0 clamp(210px, 34%, 320px); margin: 0; padding: 6px; overflow-y: auto; list-style: none; background: rgba(0, 0, 0, .22); border-left: 1px solid var(--line) }
+#projects { flex: 0 0 clamp(210px, 34%, 320px); margin: 0; padding: 6px; overflow-y: auto; list-style: none; background: var(--sunk); border-left: 1px solid var(--line) }
 .pl { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 10px; width: 100%; padding: 6px; background: none; border: 1px solid transparent; border-radius: 5px; text-align: left }
 .pl:hover, .pl:focus-visible { background: var(--raise); border-color: var(--accent); outline: none }
 .pl .mini { height: 48px; overflow: hidden; border: 1px solid var(--line); border-radius: 4px }
@@ -87,10 +125,6 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .pl small { display: block; overflow: hidden; color: var(--accent2); font: 10px var(--mono); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis }
 .pl.no-img { grid-template-columns: 1fr; padding: 9px 8px }
 .pl.no-img b { font-size: 16px }
-.tile.lit { border-color: var(--accent); box-shadow: 0 0 18px var(--glow) }
-/* Hover zoom: `scale` composes after the inline placement transform, so the card grows and lifts out of the sphere. */
-.tile { transition: scale .2s ease, box-shadow .2s ease }
-.tile:hover, .tile.lit { scale: 1.15 }
 .full #sphere-panel { position: fixed; inset: 0; z-index: 15; height: auto; background: var(--bg); border: 0; border-radius: 0 }
 body:not(.full) #stage { cursor: zoom-in }
 
@@ -106,16 +140,31 @@ body:not(.full) #stage { cursor: zoom-in }
 #about summary:hover, #about summary:focus-visible { color: var(--text); outline: none }
 #about .entry > b { font-size: 14px }
 
-/* Windows (project sheets) */
-.win { position: fixed; z-index: 20; display: flex; flex-direction: column; width: min(820px, calc(100vw - 16px)); height: min(760px, calc(100dvh - 32px)); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 12px 48px #000c; backdrop-filter: blur(8px) }
+/* Project popup: one fixed size, centred (JS). Media grid on top; the viewer shows one item full size over the body. */
+.win { position: fixed; z-index: 20; display: flex; flex-direction: column; width: min(820px, calc(100vw - 16px)); height: min(760px, calc(100dvh - 32px)); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 12px 48px var(--shadow); backdrop-filter: blur(8px) }
 .win > header { border-radius: 6px 6px 0 0; cursor: move; touch-action: none }
-.hero { margin-bottom: 14px; overflow: hidden; background: #000; border: 1px solid var(--line); border-radius: 4px }
-.hero > img, .hero > video { display: block; width: 100%; height: min(420px, 45dvh, 75vw); object-fit: contain }
 .x { padding: 0 6px; background: none; border: 0; color: var(--muted); font-size: 15px }
 .x:hover { color: var(--accent) }
 .win .body { flex: 1; min-height: 0; overflow: auto; padding: 14px 16px 16px }
+.mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-bottom: 14px }
+.mgrid.one { grid-template-columns: 1fr }
+.mthumb { position: relative; aspect-ratio: 4 / 3; padding: 0; overflow: hidden; background: var(--shade); border: 1px solid var(--line); border-radius: 4px; cursor: zoom-in }
+.mgrid.one .mthumb { aspect-ratio: auto; height: min(420px, 45dvh, 75vw) }
+.mthumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: scale .2s ease }
+.mgrid.one .mthumb img { object-fit: contain }
+.mthumb:hover, .mthumb:focus-visible { border-color: var(--accent); outline: none }
+.mthumb:hover img { scale: 1.04 }
+.badge { position: absolute; left: 6px; top: 4px; color: #fff; font-size: 13px; font-style: normal; text-shadow: 0 0 3px #000, 0 0 3px #000 }
+.viewer { position: absolute; inset: 35px 0 0; z-index: 2; display: grid; grid-template: 100% / 48px minmax(0, 1fr) 48px; background: color-mix(in srgb, var(--bg) 97%, transparent); border-radius: 0 0 6px 6px }
+.vmedia { grid-column: 2; display: grid; place-items: center; min-height: 0; padding: 14px 0 }
+.vmedia > img, .vmedia > video { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px }
+.vnav { grid-row: 1; background: none; border: 0; color: var(--text); font-size: 36px }
+.vnav[data-step="-1"] { grid-column: 1 }
+.vnav[data-step="1"] { grid-column: 3 }
+.vnav:hover { color: var(--accent) }
+.vx { position: absolute; top: 8px; right: 10px; z-index: 1 }
 .sheet-top { display: grid; grid-template-columns: 200px 1fr; gap: 16px; align-items: start }
-.portrait { aspect-ratio: 4 / 3; overflow: hidden; background: #000; border: 1px solid var(--line); border-radius: 4px }
+.portrait { aspect-ratio: 4 / 3; overflow: hidden; background: var(--shade); border: 1px solid var(--line); border-radius: 4px }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 6px; margin: 10px 0 0 }
 .stats div { padding: 4px 8px; background: var(--raise); border: 1px solid var(--line); border-radius: 4px }
 .stats dt { overflow: hidden; color: var(--accent2); font: 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis }
@@ -126,11 +175,6 @@ body:not(.full) #stage { cursor: zoom-in }
 .body ul { margin: 8px 0; padding-left: 18px }
 .body li { margin: 5px 0 }
 .body li::marker { color: var(--accent) }
-.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; margin: 12px 0 }
-.gallery button { position: relative; aspect-ratio: 4 / 3; padding: 0; overflow: hidden; background: #000; border: 1px solid var(--line); border-radius: 3px; cursor: zoom-in }
-.gallery button:hover { border-color: var(--accent) }
-.gallery img { display: block; width: 100%; height: 100%; object-fit: cover }
-.badge { position: absolute; left: 5px; top: 3px; font-size: 12px; font-style: normal; text-shadow: 0 0 3px #000, 0 0 3px #000 }
 .links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px }
 .entry { padding: 10px 0; border-bottom: 1px dashed var(--line) }
 .entry:last-child { border: 0 }
@@ -143,18 +187,21 @@ body:not(.full) #stage { cursor: zoom-in }
 .comp b { overflow: hidden; font-weight: 400; white-space: nowrap; text-overflow: ellipsis }
 .comp small { color: var(--muted); font: 11px var(--mono) }
 
-/* Terminal */
-#term .body { color: #d9d0c1; font: 14px/1.6 var(--mono); cursor: text;
-  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .022) 0 1px, transparent 1px 3px), #050409 }
+/* Terminal: text in the secondary pink */
+#term .body { color: var(--accent2); font: 14px/1.6 var(--mono); cursor: text;
+  background: repeating-linear-gradient(0deg, var(--scan) 0 1px, transparent 1px 3px), var(--term-bg) }
 #term-out > div { white-space: pre-wrap; overflow-wrap: anywhere }
 #term-out > .pre { white-space: pre; overflow-x: auto }
 #term a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted; cursor: pointer }
 #term img { height: 72px; margin: 6px 6px 0 0; border: 1px solid var(--line); border-radius: 3px; vertical-align: top }
+#term .tthumb { display: inline-block; width: 34px; height: 24px; margin: 1px 10px 1px 0; vertical-align: middle; background: var(--raise); border: 1px solid var(--line); border-radius: 3px; object-fit: cover }
+#term img.tthumb { cursor: pointer }
+#term .tthumb.blank { visibility: hidden }
 #term-form { display: flex; gap: 10px; align-items: baseline }
 #term-in { flex: 1; padding: 0; background: none; border: 0; caret-color: var(--accent) }
 #term-in:focus { box-shadow: none; outline: none }
-#term-in::placeholder { color: #5d5566 }
-#suggest { margin: 6px 0 2px; padding: 6px 10px; background: rgba(255, 255, 255, .03); border: 1px solid var(--line); border-radius: 4px }
+#term-in::placeholder { color: color-mix(in srgb, var(--accent2) 45%, transparent) }
+#suggest { margin: 6px 0 2px; padding: 6px 10px; background: var(--raise); border: 1px solid var(--line); border-radius: 4px }
 .sg-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; margin: 3px 0 }
 .sg-row > span { flex: 0 0 72px; color: var(--accent2); font-size: 11px; letter-spacing: .12em; text-transform: uppercase }
 .sg { padding: 1px 8px; background: none; border: 1px solid var(--line); border-radius: 3px; color: var(--muted); font: 12px/1.6 var(--mono) }
@@ -176,4 +223,5 @@ body:not(.full) #stage { cursor: zoom-in }
   .sheet-top { grid-template-columns: 1fr }
   #term .body { font-size: 13px }
   .sg-row > span { flex-basis: 100% }
+  .mgrid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) }
 }

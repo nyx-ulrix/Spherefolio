@@ -39,7 +39,7 @@ function renderList() {
   $('#count').textContent = `${P.length} / ${MAX} projects`;
   $('#new').disabled = P.length >= MAX;
   $('#plist').innerHTML = P.map((p, i) => !p.title.toLowerCase().includes(q) ? '' :
-    `<li><button data-pick="${i}"${view[0] === 'project' && view[1] === i ? ' class="on"' : ''}><span class="mini">${p.images[0] ? `<img src="${thumb(p.images[0])}" alt="">` : `<span class="card" style="--hue:${(i * 47 + 15) % 360}"></span>`}</span><b>${String(i + 1).padStart(2, '0')} · ${esc(p.title)}</b><small>${esc(p.type)}</small></button></li>`).join('');
+    `<li><button data-pick="${i}"${view[0] === 'project' && view[1] === i ? ' class="on"' : ''}><span class="mini">${p.images[0] ? `<img src="${thumb(p.images[0])}" alt="">` : `<span class="card"></span>`}</span><b>${String(i + 1).padStart(2, '0')} · ${esc(p.title)}</b><small>${esc(p.type)}</small></button></li>`).join('');
 }
 
 function render() {

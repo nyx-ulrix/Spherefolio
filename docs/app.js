@@ -12,13 +12,12 @@ const media = (f, full) => isVid(f)
   ? `<video src="${src(f)}" poster="${thumb(f)}" muted loop playsinline ${full ? 'controls autoplay' : 'preload="none"'}></video>`
   : `<img src="${full ? src(f) : thumb(f)}" alt="" draggable="false">`;
 const meta = p => esc([p.type, p.year].filter(Boolean).join(' · '));
-const hue = i => (i * 47 + 15) % 360;
 // Project card: gradient card when empty; a cover image/video replaces it when set. Big title on top, details below.
 const card = (p, i) => {
   const f = p.images?.[0], text = `<b>${esc(p.title)}</b>${p.tagline ? `<span>${esc(p.tagline)}</span>` : ''}<small>${meta(p)}</small>`;
   return f
     ? `<span class="media">${media(f)}</span><span class="label">${text}</span>`
-    : `<span class="card" style="--hue:${hue(i)}">${text}</span>`;
+    : `<span class="card">${text}</span>`;
 };
 const bullets = s => { const l = lines(s); return l.length > 1 ? `<ul>${l.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : l.length ? `<p>${esc(l[0])}</p>` : ''; };
 const chips = s => lines(s).length ? `<div class="chips">${s.split(',').map(t => `<span>${esc(t.trim())}</span>`).join('')}</div>` : '';
@@ -35,7 +34,7 @@ const S = { size: .38, fill: .8, spin: .06, minTiles: 24, ...data.sphere };
 const stage = $('#stage'), sphere = $('#sphere'), caption = $('#caption');
 document.title = `${site.name} · Portfolio`;
 document.documentElement.style.setProperty('--accent', site.accent || '#ff6400');
-document.documentElement.style.setProperty('--accent2', site.accent2 || '#b79cff');
+document.documentElement.style.setProperty('--pink', site.accent2 || '#f9a8ce'); // secondary colour; light mode deepens it (CSS)
 
 // ---- About me: each section is a native <details> dropdown; Summary starts open.
 const drop = (name, count, html, open) => `<details${open ? ' open' : ''}><summary>${esc(name)}${count ? `<span class="dim">${count}</span>` : ''}</summary>${html}</details>`;
@@ -106,6 +105,7 @@ addEventListener('pointermove', e => {
   const dx = e.clientX - drag[0], dy = e.clientY - drag[1];
   drag = [e.clientX, e.clientY];
   moved += Math.abs(dx) + Math.abs(dy);
+  if (moved > 6) stage.classList.add('dragged'); // they've found it: fade the "drag to move" hint
   ry += vy = dx * .25;
   rx += vx = -dy * .25;
 });
@@ -211,12 +211,28 @@ function openProject(i) {
   const p = P[i], im = p.images || [];
   const head = `<div><h2>${esc(p.title)}</h2><p class="muted">${esc(p.tagline)}</p>
     <dl class="stats">${stat('Year', p.year)}${stat('Type', p.type)}${stat('Slot', `#${String(i + 1).padStart(2, '0')}`)}</dl></div>`;
-  // With media: the full, uncropped image/video on top. Without: the small card beside the title.
+  // Media grid on top (a single item shows large); click any item to open it full size in the viewer (‹ › to flip).
+  const tile = (f, j) => `<button class="mthumb" data-v="${j}" aria-label="View ${isVid(f) ? 'video' : 'image'} ${j + 1}">`
+    + `<img src="${im.length === 1 && !isVid(f) ? src(f) : thumb(f)}" alt="">${isVid(f) ? '<i class="badge">▶</i>' : ''}</button>`;
   openWin('win-project', p.title, `
-    ${im.length ? `<div class="hero">${media(im[0], true)}</div>${head}` : `<div class="sheet-top"><div class="portrait">${card(p, i)}</div>${head}</div>`}
-    ${chips(p.tools)}${bullets(p.text)}
-    ${im.length > 1 ? `<div class="gallery">${im.map((f, j) => `<button data-f="${esc(f)}" aria-label="Show ${isVid(f) ? 'video' : 'image'} ${j + 1}"><img src="${thumb(f)}" alt="">${isVid(f) ? '<i class="badge">▶</i>' : ''}</button>`).join('')}</div>` : ''}
-    ${linkBtns(p.links)}`);
+    ${im.length ? `<div class="mgrid${im.length === 1 ? ' one' : ''}">${im.map(tile).join('')}</div>${head}` : `<div class="sheet-top"><div class="portrait">${card(p, i)}</div>${head}</div>`}
+    ${chips(p.tools)}${bullets(p.text)}${linkBtns(p.links)}
+    <div class="viewer" hidden><button class="vx btn" aria-label="Back to project">✕</button><button class="vnav" data-step="-1" aria-label="Previous">‹</button><div class="vmedia"></div><button class="vnav" data-step="1" aria-label="Next">›</button></div>`);
+}
+function view(j) {
+  const im = P[openP].images, v = $('#win-project .viewer');
+  j = (j + im.length) % im.length;
+  v.dataset.i = j;
+  v.hidden = false;
+  $('.vmedia', v).innerHTML = media(im[j], true);
+  v.querySelectorAll('.vnav').forEach(b => { b.hidden = im.length < 2; });
+}
+function closeViewer() { // true if a viewer was open (so Esc steps back one level at a time)
+  const v = $('#win-project .viewer');
+  if (!v || v.hidden) return false;
+  v.hidden = true;
+  $('.vmedia', v).innerHTML = '';
+  return true;
 }
 
 // ---- Terminal
@@ -231,10 +247,12 @@ const stacks = [...P.reduce((m, p, i) => {
   for (const t of lines(p.tools.replaceAll(',', '\n'))) m.set(t, [...(m.get(t) || []), i]);
   return m;
 }, new Map())].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+// Each row starts with the project's cover thumbnail (or a blank of the same width, so the columns stay aligned).
+const tthumb = i => P[i].images?.length ? `<img class="tthumb" src="${thumb(P[i].images[0])}" alt="" loading="lazy" data-open="${i}">` : '<span class="tthumb"></span>';
 function table(ids, note) {
   const tw = Math.max(8, ...P.map(p => p.title.length)) + 2, yw = Math.max(5, ...P.map(p => String(p.type).length)) + 2;
-  print(`<span class="dim">  #   ${pad('PROJECT', tw)}${pad('TYPE', yw)}YEAR</span>\n`
-    + ids.map(i => `  ${String(i + 1).padStart(2, '0')}  ${pad(P[i].title, tw, `<a data-open="${i}">${esc(P[i].title)}</a>`)}${pad(P[i].type, yw)}${esc(P[i].year)}`).join('\n')
+  print(`<span class="tthumb blank"></span><span class="dim">#   ${pad('PROJECT', tw)}${pad('TYPE', yw)}YEAR</span>\n`
+    + ids.map(i => `${tthumb(i)}${String(i + 1).padStart(2, '0')}  ${pad(P[i].title, tw, `<a data-open="${i}">${esc(P[i].title)}</a>`)}${pad(P[i].type, yw)}${esc(P[i].year)}`).join('\n')
     + `\n<span class="dim">  ${note} · </span>${cmd('open')}<span class="dim"> &lt;n&gt; for details, or click a card on the sphere</span>`, 'pre');
 }
 const cmds = {
@@ -320,15 +338,31 @@ tbody.onclick = e => { if (!getSelection().toString() && !e.target.closest('a'))
 
 // ---- Global input
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-f],#full,.x');
+  if (e.target.matches('.viewer, .vmedia')) return closeViewer(); // click the backdrop around full-size media
+  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],#full,#theme,.vx,.x');
   if (!t) return;
   const d = t.dataset;
   if (t.id === 'full') setFull(!isFull());
+  else if (t.id === 'theme') setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
   else if (d.sheet) openProject(+d.sheet);
   else if (d.open) run(`open ${+d.open + 1}`);
   else if (d.cmd) run(d.cmd);
-  else if (d.f) t.closest('.win').querySelector('.hero').innerHTML = media(d.f, true);
+  else if (d.v) view(+d.v);
+  else if (d.step) view(+$('#win-project .viewer').dataset.i + +d.step);
+  else if (t.matches('.vx')) closeViewer();
   else closeSheet();
+});
+
+// Light / dark: follows the system until the visitor picks one (index.html sets it before first paint).
+function setTheme(t, save = true) {
+  document.documentElement.dataset.theme = t;
+  if (save) try { localStorage.theme = t; } catch {}
+  $('#theme').textContent = t === 'light' ? '☾ Dark' : '☀ Light';
+}
+setTheme(document.documentElement.dataset.theme || 'dark', false);
+matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => { // system flips (e.g. at sunset)
+  let saved; try { saved = localStorage.theme; } catch {}
+  if (!saved) setTheme(e.matches ? 'light' : 'dark', false);
 });
 
 // Project details never block the view: interacting (click, tap, drag, focus) anywhere outside them closes them.
@@ -337,7 +371,9 @@ for (const ev of ['pointerdown', 'focusin'])
   document.addEventListener(ev, e => { if (!e.target.closest?.('.win')) closeSheet(); }, true);
 
 addEventListener('keydown', e => {
-  if (e.key === 'Escape') return openP != null ? closeSheet() : setFull(false); // close details, else leave fullscreen
+  if (e.key === 'Escape') return closeViewer() || (openP != null ? closeSheet() : setFull(false)); // viewer, then details, then fullscreen
+  const v = $('#win-project .viewer');
+  if (v && !v.hidden && /^Arrow(Left|Right)$/.test(e.key)) return view(+v.dataset.i + (e.key === 'ArrowRight' ? 1 : -1));
   // Typing anywhere goes to the terminal (unless the sphere is covering it).
   if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && !isFull() && !e.target.closest('input, textarea, button, a')) tin.focus();
 });
