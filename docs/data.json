@@ -194,16 +194,6 @@
       ]
     },
     {
-      "title": "Memo App",
-      "tagline": "Mobile memo application",
-      "year": "2023–25",
-      "type": "Mobile",
-      "tools": "Flutter, Dart",
-      "links": "GitHub | https://github.com/nyx-ulrix/memo_app",
-      "text": "Built a mobile memo application to learn cross-platform app development.",
-      "images": []
-    },
-    {
       "title": "21st Birthday Website",
       "tagline": "Personalised event website",
       "year": "2023–25",
@@ -214,16 +204,6 @@
       "images": [
         "21st-birthday-website.webp"
       ]
-    },
-    {
-      "title": "React Refresh",
-      "tagline": "React fundamentals practice",
-      "year": "2023–25",
-      "type": "Practice",
-      "tools": "React, CSS",
-      "links": "GitHub | https://github.com/nyx-ulrix/React-refresh",
-      "text": "Practice project refreshing React fundamentals.",
-      "images": []
     }
   ],
   "resume": [
