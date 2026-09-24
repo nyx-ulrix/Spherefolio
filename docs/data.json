@@ -5,7 +5,7 @@
     "location": "Singapore",
     "summary": "Computer Engineering undergraduate at SIT with a Diploma in Game Design and Development. Builds end-to-end products across web, desktop, mobile, and embedded (React, TypeScript, Python, Electron, Flutter, Unity), integrating AI/LLMs, computer vision, and robotics. Two-time hackathon builder and former web developer and game design intern, interested in software engineering, data analytics, and process optimisation.",
     "links": "GitHub | https://github.com/nyx-ulrix\nLinkedIn | https://www.linkedin.com/in/malcolmliewjiaen/\nEmail | mailto:malcolmliew.je@gmail.com",
-    "accent": "#ff6400",
+    "accent": "#ff0490",
     "accent2": "#f9a8ce"
   },
   "sphere": {
@@ -15,6 +15,20 @@
     "minTiles": 24
   },
   "projects": [
+    {
+      "title": "Badnotes",
+      "tagline": "My current passion project: my own note-taking app, so I don't have to pay for a subscription",
+      "year": "2026",
+      "type": "Passion project",
+      "tools": "Android, Google Drive",
+      "links": "",
+      "text": "I didn't want to pay for another note-taking subscription, so I built my own. It's called Badnotes because it has fewer features than the paid apps, just the ones I actually use.\nHandwriting with pen, highlighter, eraser, lasso, text and image tools, a custom colour palette and stroke sizes.\nTabbed notebooks, nested folders, pinned folders, favourites, recents and search.\nPage templates and sizes; add pages before or after, or from a template.\nContinuous-scroll or swipe page views; vertical, horizontal and two-page layouts; presentation and focus modes.\nLock notebooks with a password, save as PDF, and export and share.\nGoogle Drive sync, including background sync and a choice of save location.",
+      "images": [
+        "badnotes.webp",
+        "badnotes-folders.webp",
+        "badnotes-settings.webp"
+      ]
+    },
     {
       "title": "Deployer",
       "tagline": "Self-Hosted Backend and Deployment Platform",

@@ -33,7 +33,7 @@ const { site, projects: P, resume } = data;
 const S = { size: .38, fill: .8, spin: .06, minTiles: 24, ...data.sphere };
 const stage = $('#stage'), sphere = $('#sphere'), caption = $('#caption');
 document.title = `${site.name} · Portfolio`;
-document.documentElement.style.setProperty('--accent', site.accent || '#ff6400');
+document.documentElement.style.setProperty('--accent', site.accent || '#ff0490');
 document.documentElement.style.setProperty('--pink', site.accent2 || '#f9a8ce'); // secondary colour; light mode deepens it (CSS)
 
 // ---- About me: each section is a native <details> dropdown; Summary starts open.

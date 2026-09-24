@@ -1,6 +1,6 @@
 /* Spherefolio: Foundry VTT-style UI, dark or light. Shared by the site (docs/) and the GM dashboard (admin/). */
 :root {
-  --accent: #ff6400;
+  --accent: #ff0490;
   --pink: #f9a8ce;              /* secondary colour (site.accent2); JS overrides it from data.json */
   --accent2: var(--pink);
   --bg: #08070d;
