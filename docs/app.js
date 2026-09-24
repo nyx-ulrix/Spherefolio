@@ -211,11 +211,15 @@ function openProject(i) {
   const p = P[i], im = p.images || [];
   const head = `<div><h2>${esc(p.title)}</h2><p class="muted">${esc(p.tagline)}</p>
     <dl class="stats">${stat('Year', p.year)}${stat('Type', p.type)}${stat('Slot', `#${String(i + 1).padStart(2, '0')}`)}</dl></div>`;
-  // Media grid on top (a single item shows large); click any item to open it full size in the viewer (‹ › to flip).
+  // Media on top, click any item to open it full size in the viewer (‹ › to flip). Layouts: one = single large item;
+  // pair = two side by side; feat = cover large on the left, the rest stacked beside it (pair/feat ≥ ~30% of the screen).
+  const n = im.length, big = j => n === 1 || (n > 2 && j === 0); // these get the full-res image, not the 480px thumb
   const tile = (f, j) => `<button class="mthumb" data-v="${j}" aria-label="View ${isVid(f) ? 'video' : 'image'} ${j + 1}">`
-    + `<img src="${im.length === 1 && !isVid(f) ? src(f) : thumb(f)}" alt="">${isVid(f) ? '<i class="badge">▶</i>' : ''}</button>`;
+    + `<img src="${big(j) && !isVid(f) ? src(f) : thumb(f)}" alt="">${isVid(f) ? '<i class="badge">▶</i>' : ''}</button>`;
+  const grid = n === 1 ? '<div class="mgrid one">' : n === 2 ? '<div class="mgrid pair">'
+    : `<div class="mgrid feat" style="grid-template-columns:2fr repeat(${Math.ceil((n - 1) / 2)}, 1fr)">`;
   openWin('win-project', p.title, `
-    ${im.length ? `<div class="mgrid${im.length === 1 ? ' one' : ''}">${im.map(tile).join('')}</div>${head}` : `<div class="sheet-top"><div class="portrait">${card(p, i)}</div>${head}</div>`}
+    ${n ? `${grid}${im.map(tile).join('')}</div>${head}` : `<div class="sheet-top"><div class="portrait">${card(p, i)}</div>${head}</div>`}
     ${chips(p.tools)}${bullets(p.text)}${linkBtns(p.links)}
     <div class="viewer" hidden><button class="vx btn" aria-label="Back to project">✕</button><button class="vnav" data-step="-1" aria-label="Previous">‹</button><div class="vmedia"></div><button class="vnav" data-step="1" aria-label="Next">›</button></div>`);
 }

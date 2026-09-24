@@ -152,6 +152,12 @@ body:not(.full) #stage { cursor: zoom-in }
 .mgrid.one .mthumb { aspect-ratio: auto; height: min(420px, 45dvh, 75vw) }
 .mthumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: scale .2s ease }
 .mgrid.one .mthumb img { object-fit: contain }
+/* Multi-image projects get a showcase block at least ~30% of the screen tall. */
+.mgrid.pair, .mgrid.feat { height: max(32dvh, 240px) }
+.mgrid.pair { grid-template-columns: 1fr 1fr }
+.mgrid.feat { grid-template-rows: 1fr 1fr }
+.mgrid.feat .mthumb:first-child { grid-row: span 2 }
+.mgrid.pair .mthumb, .mgrid.feat .mthumb { aspect-ratio: auto; min-height: 0 }
 .mthumb:hover, .mthumb:focus-visible { border-color: var(--accent); outline: none }
 .mthumb:hover img { scale: 1.04 }
 .badge { position: absolute; left: 6px; top: 4px; color: #fff; font-size: 13px; font-style: normal; text-shadow: 0 0 3px #000, 0 0 3px #000 }
