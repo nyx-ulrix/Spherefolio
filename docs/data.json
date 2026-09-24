@@ -77,7 +77,9 @@
       "tools": "TypeScript, Electron, React, TSPL",
       "links": "GitHub | https://github.com/nyx-ulrix/Thermal-printer-editor",
       "text": "Built a Windows desktop application for designing and printing thermal labels on a Gprinter GP-3120TL, sending raw TSPL commands so the printer driver does not alter the layout.\nDeveloped a live WYSIWYG label canvas with rulers, snap guides, drag, resize, align, rotate, layering, grouping, and undo/redo for text, lines, images, and input fields.\nImplemented image processing for thermal output (threshold, dithering, invert), custom TTF/OTF font import, and media settings for size, gap, density, speed, and print direction.\nBuilt a template system with saved designs, fillable input fields, auto-incrementing serial number fields, saved fills, and print-width warnings; supported light and dark themes and packaged a Windows installer.",
-      "images": []
+      "images": [
+        "thermal-printer-label-editor.webp"
+      ]
     },
     {
       "title": "Singapore MRT Routing Optimiser",
