@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spherefolio · GM</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Signika:wght@400;600&display=swap">
+<link rel="stylesheet" href="/style.css">
+<style>
+  body { display: grid; grid-template-rows: auto 1fr 140px; height: 100dvh }
+  #top { display: flex; align-items: center; gap: 16px; padding: 8px 14px; background: var(--panel); border-bottom: 1px solid var(--line) }
+  #top .kicker { flex: 1 }
+  main { display: grid; grid-template-columns: 300px 1fr 250px; min-height: 0 }
+  #list, #side { overflow: auto; padding: 12px; background: var(--panel) }
+  #list { border-right: 1px solid var(--line) }
+  #side { border-left: 1px solid var(--line) }
+  #side .btn { width: 100%; margin-bottom: 6px }
+  #list h3:first-child, #side h3:first-child { margin-top: 0 }
+  #editor { min-height: 0; overflow: auto; margin: 14px; padding: 18px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px }
+  .row { display: flex; gap: 6px; align-items: center }
+  .ed-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px }
+  .ed-head h2, .ed-head label { flex: 1; margin: 0 }
+  label { display: block; margin-bottom: 10px }
+  label > span { display: block; margin-bottom: 3px; color: var(--muted); font: 11px var(--mono); letter-spacing: .08em; text-transform: uppercase }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0 12px }
+  .drop { display: grid; place-items: center; height: 80px; border: 1px dashed var(--line); border-radius: 6px; color: var(--muted); cursor: pointer }
+  .drop:hover { border-color: var(--accent); color: var(--text) }
+  .imgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 10px }
+  .imgs figure { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 4px }
+  .imgs img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover }
+  .imgs figcaption { display: flex; justify-content: space-between; align-items: center; padding: 4px }
+  .section { margin-bottom: 14px; padding: 12px; background: var(--raise); border: 1px solid var(--line); border-radius: 6px }
+  .item { padding: 10px 0; border-top: 1px dashed var(--line) }
+  #log { margin: 0; overflow: auto; padding: 8px 14px; background: #050409; border-top: 1px solid var(--line); color: var(--muted); font: 12px/1.5 var(--mono); white-space: pre-wrap }
+</style>
+<script type="module" src="admin.js"></script>
+</head>
+<body>
+<header id="top">
+  <span class="kicker">Spherefolio · Gamemaster</span>
+  <span id="count" class="muted"></span>
+  <span id="saved" class="muted">loaded</span>
+</header>
+<main>
+  <aside id="list">
+    <h3>Compendium · Projects</h3>
+    <div class="row"><input id="q" type="search" placeholder="Search…" aria-label="Search projects"><button class="btn" id="new" data-act="new">+ New</button></div>
+    <ol id="plist" class="comp"></ol>
+  </aside>
+  <section id="editor"></section>
+  <aside id="side">
+    <h3>Game Settings</h3>
+    <button class="btn" data-go="site">⚙ Site &amp; UI</button>
+    <button class="btn" data-go="resume">☰ Resume &amp; jobs</button>
+    <h3>Game Access</h3>
+    <a class="btn" href="/" target="_blank">◎ Preview site</a>
+    <button class="btn" data-act="publish">⇪ Publish to GitHub Pages</button>
+    <a class="btn" href="/live" target="_blank">↗ Open live site</a>
+    <h3>Help</h3>
+    <p class="muted">Edits save automatically to <code>docs/data.json</code>. Images are resized and converted to WebP before upload. Publish commits <code>docs/</code> and pushes. GitHub Pages updates about a minute later.</p>
+  </aside>
+</main>
+<pre id="log" aria-live="polite">GM console ready.
+</pre>
+</body>
+</html>

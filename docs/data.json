@@ -1,0 +1,367 @@
+{
+  "site": {
+    "name": "Malcolm Liew Jia En",
+    "role": "Computer Engineering Undergraduate @ SIT",
+    "location": "Singapore",
+    "summary": "Computer Engineering undergraduate at the Singapore Institute of Technology with a Diploma in Game Design and Development and hands-on experience shipping full-stack web, desktop, mobile, and embedded software. Builds end-to-end products across React, TypeScript, Python, Electron, Flutter, and Unity, with a strong foundation in data structures, algorithm analysis, and optimisation. Experienced in integrating AI and LLM services (Google Gemini, OpenAI, Agnes AI), computer vision models (YOLOv8, MobileCLIP), cloud and backend platforms (Supabase, Vercel, Docker, Cloudflare), and robotics tooling (ROS 2, MQTT, WebRTC, LiDAR). Two-time hackathon builder and former web developer and game design intern, with proven cross-functional communication, data integrity, and event leadership skills. Interested in software engineering, data analytics, and process optimisation.",
+    "links": "Email | mailto:malcolmliew.je@gmail.com\nLinkedIn | https://www.linkedin.com/in/malcolmliewjiaen/\nGitHub | https://github.com/nyx-ulrix",
+    "accent": "#ff6400"
+  },
+  "sphere": {
+    "size": 0.36,
+    "fill": 0.8,
+    "spin": 0.06,
+    "minTiles": 36
+  },
+  "projects": [
+    {
+      "title": "Deployer",
+      "tagline": "Self-Hosted Backend and Deployment Platform",
+      "year": "2026",
+      "type": "Platform",
+      "tools": "Python, TypeScript, Docker, WSL2, MariaDB, MongoDB, Caddy, Cloudflare, C#",
+      "links": "GitHub | https://github.com/nyx-ulrix/deployer",
+      "text": "Built an open-source, self-hosted backend and deployment platform (similar to Supabase + Vercel) that runs on an ordinary Windows PC with as little as 4 GB RAM, installed via a single command or a one-click installer.\nImplemented user authentication with email/password, Google and GitHub OAuth, and account linking, plus role-based access control (owner, admin, developer, viewer), single-use invite links, and an audit log for team collaboration.\nProvisioned managed SQL (MariaDB) and NoSQL (MongoDB) databases per project with restricted database users, and support for external databases including MySQL, PostgreSQL, and MongoDB Atlas.\nDeveloped a schema viewer that renders ER diagrams in crow's-foot notation across SQL and NoSQL sources, with convention checks, cross-database links, and DDL export (.sql and mongosh scripts).\nBuilt a browser-based data browser and query console (SQL and mongosh) with role-based read-only enforcement for viewers.\nDesigned a project-scoped REST data API with API keys (read-only anon and read/write service keys) usable from curl, JavaScript, and Python.\nImplemented GitHub push-to-deploy: repository webhooks, automatic build detection (static, Node.js, Python, Dockerfile), zero-downtime deployments behind a Caddy reverse proxy, rollbacks, and build and runtime logs.\nAdded encrypted backups, point-in-time recovery, safety snapshots, and full encrypted export and import for migrating installations between devices.\nEnabled secure remote access and custom domains through automated Cloudflare Tunnel and DNS configuration, with no port forwarding required, plus support for attaching spare PCs as host devices.\nWrote a PowerShell installer and a C# WinForms setup application (.NET Framework 4.8) that checks system requirements, configures Docker Engine inside WSL2, generates secrets locally, and supports dry-run mode; set up CI releases publishing container images to GitHub Container Registry.\nAuthored an AI-agent skill enabling coding agents to back websites with Deployer, and wrote pytest API tests and technical documentation.",
+      "images": []
+    },
+    {
+      "title": "Fitz",
+      "tagline": "AI Wardrobe and Outfit Planner · SMU Agnes AI Hackathon 2026",
+      "year": "2026",
+      "type": "Hackathon",
+      "tools": "React, TypeScript, Vite, Tailwind CSS, Hono, Supabase, Google Gemini, Agnes AI, Vercel",
+      "links": "GitHub | https://github.com/nyx-ulrix/Fitz\nLive | https://fitz-bay.vercel.app",
+      "text": "Built a fully functioning, mobile-first AI wardrobe and styling web application that recommends daily outfits using the user's own clothes, deployed on Vercel.\nIntegrated Google Gemini computer vision to generate a personalised colour profile (undertone, contrast, recommended colours) from a user photo and to classify garments by category, colour, and pattern, with privacy-aware prompting that avoids sensitive inferences.\nIntegrated Agnes AI for wardrobe-grounded outfit generation (\"Dress me\") and AI virtual try-on image generation (\"Try it on\"), letting users preview pairings before committing and reducing impulsive purchases and textile waste.\nIncorporated live weather data from the Open-Meteo API into outfit recommendation prompts for context-aware suggestions.\nDesigned a swipe-based mix-and-match outfit grid with item locking and local caching for session continuity.\nBuilt a Hono API on Node.js deployed as Vercel serverless functions, with Supabase for authentication, storage, and wardrobe data, and Supabase Edge Functions for \"Style Jams\" collaborative event outfit planning.\nEngineered graceful degradation with an AI service health check and status banner so core features remain usable when generative AI services are unavailable.",
+      "images": []
+    },
+    {
+      "title": "Yahboom Robot",
+      "tagline": "Edge AI Object Detection and Robot Control Dashboard",
+      "year": "2026",
+      "type": "Robotics",
+      "tools": "Python, Flask, React, TypeScript, ROS 2, MQTT, WebRTC, YOLOv8, MobileCLIP, Raspberry Pi, LiDAR",
+      "links": "GitHub | https://github.com/nyx-ulrix/YahboomProject",
+      "text": "Developed a monorepo robotics stack comprising a React and Vite web dashboard, a Flask backend, and Raspberry Pi scripts for a Yahboom robot car.\nImplemented real-time camera streaming over WebRTC and MQTT frame relay, and an MQTT-to-ROS 2 bridge for movement commands, autonomous exploration, and drive status.\nBuilt a LiDAR-based obstacle safety node and LiDAR grid and SLAM views in the dashboard.\nImplemented and compared two object detection pipelines for emergency stopping: server-side YOLOv8 (Ultralytics) inference on live frames, and a Cache Aware Offloading (CAO) pipeline using MobileCLIP-S1 vision transformer embeddings on the Pi with image-to-image cosine similarity matching against a reference library.\nDesigned a Stop-Time Test Bench with configurable detection modes, similarity thresholds, embedding sizes (512/1024/2048 B), simulated network hop delay, and CSV export for benchmarking edge versus cloud inference latency.\nBuilt a customisable widget-based dashboard with layout templates, an event log, and a REST API for video, VIT embeddings, YOLO, and test bench control.",
+      "images": []
+    },
+    {
+      "title": "The Daily Grind",
+      "tagline": "AI Productivity and Onboarding Workspace · strAIght up! Hackathon 2026",
+      "year": "2026",
+      "type": "Hackathon",
+      "tools": "React, TypeScript, Vite, Electron, SQLite, IndexedDB, OpenAI, Gmail API, Tailwind CSS",
+      "links": "GitHub | https://github.com/nyx-ulrix/DailyGrind",
+      "text": "Built a fully functioning AI-integrated web application designed to reduce intern handholding by automatically breaking down tasks and guiding new hires through onboarding independently.\nDeveloped a local-first productivity workspace with an overview dashboard, priorities view, unified message inbox, and settings, using React 18, React Router, and React Context for state management.\nImplemented browser persistence with Dexie (IndexedDB) for tasks, channels, messages, calendar, and kanban data, and a desktop build using Electron with a local SQLite database (better-sqlite3) and an IPC bridge.\nIntegrated Gmail, Telegram, and OpenAI in the Electron main process to ingest messages and triage them into prioritised, actionable tasks.\nBuilt drag-and-drop task management with dnd-kit and an accessible UI with Radix UI, shadcn-style components, and Tailwind CSS 4; packaged a Windows installer released on GitHub.",
+      "images": []
+    },
+    {
+      "title": "AutoResume",
+      "tagline": "ReadyTalent Job Scraper and AI Resume Tailoring",
+      "year": "2026",
+      "type": "Desktop App",
+      "tools": "TypeScript, React, Electron, Google Gemini, Node.js",
+      "links": "GitHub | https://github.com/nyx-ulrix/readytalent-scraper",
+      "text": "Built a Windows desktop application that scrapes job listings (title, company, salary, required skills, description) from SIT's ReadyTalent career portal and stores them locally.\nAutomated sign-in through SIT's ADFS single sign-on in a hidden Electron window, calling the portal's own job API with incremental scraping of only new jobs; encrypted saved credentials with Windows DPAPI.\nIntegrated Google Gemini to extract ATS keywords from job descriptions and generate tailored, ATS-optimised A4 resumes and cover letters, with three printable templates and PDF export.\nServed the app over a local network server so tablets (Android/iPad) can use it as a Progressive Web App on the same Wi-Fi; wrote a scraper self-test against a mock portal API.",
+      "images": []
+    },
+    {
+      "title": "Thermal Printer Label Editor",
+      "tagline": "Label designer that prints raw TSPL to a Gprinter GP-3120TL",
+      "year": "2026",
+      "type": "Desktop App",
+      "tools": "TypeScript, Electron, React, TSPL",
+      "links": "GitHub | https://github.com/nyx-ulrix/Thermal-printer-editor",
+      "text": "Built a Windows desktop application for designing and printing thermal labels on a Gprinter GP-3120TL, sending raw TSPL commands so the printer driver does not alter the layout.\nDeveloped a live WYSIWYG label canvas with rulers, snap guides, drag, resize, align, rotate, layering, grouping, and undo/redo for text, lines, images, and input fields.\nImplemented image processing for thermal output (threshold, dithering, invert), custom TTF/OTF font import, and media settings for size, gap, density, speed, and print direction.\nBuilt a template system with saved designs, fillable input fields, auto-incrementing serial number fields, saved fills, and print-width warnings; supported light and dark themes and packaged a Windows installer.",
+      "images": []
+    },
+    {
+      "title": "Singapore MRT Routing Optimiser",
+      "tagline": "Tour optimisation across the 163-station MRT network",
+      "year": "2026",
+      "type": "Algorithms",
+      "tools": "Python, Dijkstra's Algorithm, Ant Colony Optimisation, Branch and Bound",
+      "links": "",
+      "text": "Designed a full routing optimisation system for Singapore's 163-station MRT network, implementing Nearest Neighbour, Branch and Bound, and Ant Colony Optimisation (ACO) solvers from scratch.\nPre-processed the sparse transit graph with Dijkstra's algorithm to generate an all-pairs travel-time matrix.\nTuned ACO hyperparameters (α, β, ρ) through systematic benchmarking, achieving near-optimal tours in under 0.1 seconds.",
+      "images": []
+    },
+    {
+      "title": "DSA Benchmarking Suite",
+      "tagline": "Data Structures and Algorithms benchmarking CLI · INF1008",
+      "year": "2026",
+      "type": "Coursework",
+      "tools": "Python, Algorithm Analysis, Matplotlib",
+      "links": "GitHub | https://github.com/nyx-ulrix/Stock-Analysis-Toolkit",
+      "text": "Built a menu-driven CLI suite for INF1008 Data Structures and Algorithms covering linked lists, complexity analysis, recurrences, and sorting.\nImplemented a polynomial linked list and a hybrid data structure (HashList, FastHashList, HybridList) achieving O(1) amortised access on a singly linked list, validated and benchmarked on datasets of up to 100,000 elements.\nBenchmarked FFT O(n log n) and brute-force SAT O(2ⁿ) implementations against theoretical growth ratios.\nBuilt a divide-and-conquer MRT system sensor monitoring simulation satisfying the recurrence T(n) = 3T(n/2) + log n.\nCompared stable and unstable sorting (merge sort versus quicksort) and implemented bucket sort on dataset files, with benchmark charts generated in Matplotlib.",
+      "images": []
+    },
+    {
+      "title": "Stock Analysis Toolkit",
+      "tagline": "NVIDIA price analysis (2020–2024) · INF1002 group project",
+      "year": "2025",
+      "type": "Coursework",
+      "tools": "Python, NumPy, Matplotlib",
+      "links": "GitHub | https://github.com/nyx-ulrix/stock-analysis-project",
+      "text": "Built an end-to-end stock analysis toolkit processing historical NVIDIA price data (2020–2024) as a group project for INF1002 Programming Fundamentals.\nDeveloped a CSV ingestion pipeline with data validation, cleaning, and optimised tuple-based storage.\nImplemented Simple Moving Average (SMA), daily returns, trend detection, and a single-pass O(n) maximum profit algorithm with live trading state management.\nVisualised price trends and indicators using Matplotlib, and packaged a one-click launcher for non-technical users.",
+      "images": []
+    },
+    {
+      "title": "Escape from Edo",
+      "tagline": "Unity Game",
+      "year": "2022",
+      "type": "Game",
+      "tools": "Unity, C#",
+      "links": "GitHub | https://github.com/nyx-ulrix/Escape-from-edo",
+      "text": "Developed a Unity game in C# as part of the Diploma in Game Design and Development, covering gameplay programming, level design, and asset integration.",
+      "images": []
+    },
+    {
+      "title": "DocBot",
+      "tagline": "Game AI Agents: Finite State Machine and Behaviour Tree",
+      "year": "2022",
+      "type": "Game AI",
+      "tools": "Unity, C#, Game AI",
+      "links": "GitHub (FSM) | https://github.com/nyx-ulrix/DocBot-FSM\nGitHub (BT) | https://github.com/nyx-ulrix/DocBot-bt",
+      "text": "Implemented the same non-player character AI agent using two game AI architectures, a finite state machine (FSM) and a behaviour tree (BT), to compare decision-making approaches in Unity.",
+      "images": []
+    },
+    {
+      "title": "Self-Care",
+      "tagline": "Unity Application",
+      "year": "2022",
+      "type": "Game",
+      "tools": "Unity, C#",
+      "links": "GitHub | https://github.com/nyx-ulrix/Self-care",
+      "text": "Built an interactive self-care themed application in Unity and C# as a polytechnic project.",
+      "images": []
+    },
+    {
+      "title": "AR Food Menu",
+      "tagline": "Augmented-reality menu with 3D dishes and nutrition labels",
+      "year": "",
+      "type": "AR",
+      "tools": "Unity, C#, AR",
+      "links": "",
+      "text": "Browse 3D dishes on the table with calories, fat, carbohydrates, and protein shown in AR; double-tap a dish to add it to the cart.",
+      "images": []
+    },
+    {
+      "title": "AR Robot Shooter",
+      "tagline": "Augmented-reality timed shooter",
+      "year": "",
+      "type": "AR",
+      "tools": "Unity, C#, AR",
+      "links": "",
+      "text": "Timed AR shooter where robot drones spawn over the real world and are targeted through an on-screen crosshair.",
+      "images": []
+    },
+    {
+      "title": "Multiplayer Room Lobby",
+      "tagline": "Online room creation and quick join for a sci-fi shooter",
+      "year": "",
+      "type": "Game",
+      "tools": "Unity, C#, Networking",
+      "links": "",
+      "text": "Multiplayer lobby with named room creation, player counts, and quick join, set in a cyberpunk city scene.",
+      "images": []
+    },
+    {
+      "title": "Chain Reaction Machine",
+      "tagline": "Physics-driven marble run",
+      "year": "",
+      "type": "Simulation",
+      "tools": "Unity, C#, Physics",
+      "links": "",
+      "text": "Physics contraption of ramps, funnels, springs, and a rotating maze that carries a ball from top to bottom.",
+      "images": []
+    },
+    {
+      "title": "Memo App",
+      "tagline": "Mobile memo application",
+      "year": "2023–25",
+      "type": "Mobile",
+      "tools": "Flutter, Dart",
+      "links": "GitHub | https://github.com/nyx-ulrix/memo_app",
+      "text": "Built a mobile memo application to learn cross-platform app development.",
+      "images": []
+    },
+    {
+      "title": "21st Birthday Website",
+      "tagline": "Personalised event website",
+      "year": "2023–25",
+      "type": "Website",
+      "tools": "HTML, CSS, JavaScript",
+      "links": "GitHub | https://github.com/nyx-ulrix/21st-Birthday-Site",
+      "text": "Designed and built a personalised event website.",
+      "images": []
+    },
+    {
+      "title": "React Refresh",
+      "tagline": "React fundamentals practice",
+      "year": "2023–25",
+      "type": "Practice",
+      "tools": "React, CSS",
+      "links": "GitHub | https://github.com/nyx-ulrix/React-refresh",
+      "text": "Practice project refreshing React fundamentals.",
+      "images": []
+    }
+  ],
+  "resume": [
+    {
+      "name": "Experience",
+      "items": [
+        {
+          "title": "Web Developer",
+          "org": "Mighty Velo · Singapore",
+          "when": "Jan 2024 – Feb 2025",
+          "text": "Designed, built, and deployed an e-commerce platform using Webflow, collaborating with designers and bicycle specialists to deliver a functional, high-quality online storefront.\nManaged and maintained Shopify operations, including product listings, catalogue updates, and store configuration, to support ongoing online sales.\nSupported internal workflows by maintaining website content and resolving front-end and storefront issues across HTML, CSS, and JavaScript.\nTranslated business and design requirements into responsive web pages, improving the online customer experience."
+        },
+        {
+          "title": "Game Designer Intern",
+          "org": "Gumi Asia · Singapore",
+          "when": "Sept 2022 – Apr 2023",
+          "text": "Managed and processed large volumes of localisation data across multiple regional datasets, ensuring accuracy, consistency, and data integrity.\nCoordinated with cross-functional teams (design, engineering, QA, and localisation) to track deployment progress and verify content against release benchmarks.\nContributed to structured documentation and reporting that supported content release decisions.\nApplied attention to detail and spreadsheet-based data management (Microsoft Excel) to maintain quality across live game content updates."
+        }
+      ]
+    },
+    {
+      "name": "Education",
+      "items": [
+        {
+          "title": "Bachelor of Engineering in Computer Engineering",
+          "org": "Singapore Institute of Technology (SIT) · Singapore",
+          "when": "Sept 2025 – Sept 2028 (Expected)",
+          "text": "Integrating software engineering, computer architecture, and systems design into a multidisciplinary technical skill set.\nApplying programming and computational thinking to solve real-world engineering and data problems.\nRelevant coursework: Programming Fundamentals (INF1002), Data Structures and Algorithms (INF1008), Algorithm Design and Analysis, Computer Architecture, Systems Design."
+        },
+        {
+          "title": "Diploma in Game Design and Development",
+          "org": "Temasek Polytechnic, School of Informatics & IT · Singapore",
+          "when": "Apr 2020 – Apr 2023",
+          "text": "Developed proficiency in software development, interactive systems design, game AI, and cross-platform deployment using Unity and C#.\nApplied project-based learning to deliver functional digital products, collaborating across design and technical disciplines."
+        }
+      ]
+    },
+    {
+      "name": "Hackathons",
+      "items": [
+        {
+          "title": "SMU Agnes AI Hackathon 2026",
+          "org": "",
+          "when": "2026",
+          "text": "Built \"Fitz\", a fully functioning AI-integrated outfit planner web application with AI-powered outfit generation and virtual try-on, encouraging reuse of existing wardrobe items to reduce impulsive purchases and textile waste."
+        },
+        {
+          "title": "strAIght up! Hackathon 2026",
+          "org": "",
+          "when": "2026",
+          "text": "Built \"The Daily Grind\", a fully functioning AI-integrated onboarding web application that reduces intern handholding by automatically breaking down tasks and guiding new hires through onboarding independently."
+        }
+      ]
+    },
+    {
+      "name": "Leadership",
+      "items": [
+        {
+          "title": "Logistics, SIT FoodieConnect",
+          "org": "Singapore Institute of Technology",
+          "when": "Dec 2025 – Dec 2026",
+          "text": "Led a pour-over coffee workshop for 60 participants as event lead, delegating responsibilities across the team to ensure smooth operations from start to finish.\nManaged end-to-end event logistics, including equipment sourcing, budgeting, and claims processing, delivering the event within scope.\nPlanned monthly community engagement events for 500+ active members, overseeing event documentation and administrative record-keeping to ensure operational continuity."
+        },
+        {
+          "title": "Emcee, SIT Arts Festival 2026: Guitar Ensemble Production",
+          "org": "Singapore Institute of Technology · SIT Library",
+          "when": "Oct 2026 (Upcoming)",
+          "text": "Selected as one of two emcees for the Guitar Ensemble's inaugural production, a three-hour classical guitar recital for students, staff, and members of the public.\nHosting the programme and introducing ensemble members and their classical pieces, keeping transitions between performances smooth and on schedule.\nParticipating in the sound check and dry run with the production crew and performers to rehearse cues, timing, and stage flow."
+        },
+        {
+          "title": "Emcee, SIT Arts Festival 2026: Combined Orchestra Production",
+          "org": "Singapore Institute of Technology · Ho Bee Auditorium",
+          "when": "Sept 2026 (Upcoming)",
+          "text": "Selected as one of two emcees for a six-hour combined production bringing together four SIT music clubs in cross-collaborative performances, attended by students, staff, and the public.\nHosting the programme alongside a Chinese-speaking co-emcee, introducing performing clubs and external orchestra guests, and managing transitions across a multi-segment production.\nParticipating in the sound check and dry run with performers and production crew to coordinate cues and running order."
+        },
+        {
+          "title": "Emcee, Graduation Party for Seniors",
+          "org": "Jia Ying (Active Ageing Centres), in partnership with DBS Foundation · Kovan Hub, Singapore",
+          "when": "Jul 2026",
+          "text": "Co-emceed a three-hour bilingual graduation celebration for approximately 300 seniors from Jia Ying's Active Ageing Centres, marking their completion of a one-year programme.\nHosted in English alongside a Mandarin-speaking co-emcee, coordinating segment handovers and timing so the programme flowed smoothly for a mixed-language audience.\nHosted the event programme, guided the audience through each segment, and engaged senior participants to keep the celebration lively and on schedule, conversing in Mandarin with Chinese-speaking seniors during interactive segments.\nCoordinated with organisers from Jia Ying, a registered charity with IPC status, to deliver a smooth community event."
+        }
+      ]
+    },
+    {
+      "name": "Skills",
+      "items": [
+        {
+          "title": "Programming Languages",
+          "org": "",
+          "when": "",
+          "text": "Python, TypeScript, JavaScript, C#, Dart, SQL, HTML, CSS, PowerShell"
+        },
+        {
+          "title": "Frontend",
+          "org": "",
+          "when": "",
+          "text": "React, Vite, Tailwind CSS, Radix UI, shadcn/ui, React Router, Webflow, Responsive and Mobile-First Design"
+        },
+        {
+          "title": "Backend and APIs",
+          "org": "",
+          "when": "",
+          "text": "Node.js, Hono, Flask, REST API Design, OAuth 2.0, Role-Based Access Control, Webhooks, MQTT, WebRTC"
+        },
+        {
+          "title": "Databases",
+          "org": "",
+          "when": "",
+          "text": "MariaDB, MySQL, PostgreSQL, MongoDB, SQLite, Supabase, IndexedDB (Dexie)"
+        },
+        {
+          "title": "Cloud, DevOps and Tools",
+          "org": "",
+          "when": "",
+          "text": "Docker, WSL2, Vercel, Cloudflare Tunnel, Caddy, GitHub Actions, Git, CI/CD, Electron, Shopify"
+        },
+        {
+          "title": "AI, Machine Learning and Computer Vision",
+          "org": "",
+          "when": "",
+          "text": "Google Gemini API, OpenAI API, LLM Integration, Prompt Engineering, YOLOv8, MobileCLIP, Vision Transformers, Embedding Similarity Search"
+        },
+        {
+          "title": "Robotics and Embedded",
+          "org": "",
+          "when": "",
+          "text": "ROS 2, Raspberry Pi, LiDAR, SLAM"
+        },
+        {
+          "title": "Mobile and Game Development",
+          "org": "",
+          "when": "",
+          "text": "Flutter, Unity, Game AI (Finite State Machines, Behaviour Trees)"
+        },
+        {
+          "title": "Data and Algorithms",
+          "org": "",
+          "when": "",
+          "text": "Data Structures and Algorithms, Algorithm Complexity Analysis, Graph Algorithms (Dijkstra's), Metaheuristic Optimisation (Ant Colony Optimisation), Branch and Bound, Dynamic Programming, NumPy, Matplotlib, Microsoft Excel, Power BI, Data Cleaning and Validation"
+        },
+        {
+          "title": "Soft Skills",
+          "org": "",
+          "when": "",
+          "text": "Analytical Thinking, Problem Solving, Cross-Functional Communication, Public Speaking, Emceeing, Community Engagement, Team Leadership, Event Management, Technical Documentation, Attention to Detail"
+        },
+        {
+          "title": "Languages",
+          "org": "",
+          "when": "",
+          "text": "English, Mandarin (Conversational)"
+        },
+        {
+          "title": "Interests",
+          "org": "",
+          "when": "",
+          "text": "Software Engineering, Data Analytics, Process Optimisation, Applied AI"
+        }
+      ]
+    }
+  ]
+}
