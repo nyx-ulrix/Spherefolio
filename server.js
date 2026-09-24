@@ -2,8 +2,7 @@
 // and publishes by committing docs/ and pushing to GitHub, where Pages serves the /docs folder.
 const http = require('http'), fs = require('fs'), path = require('path'), { spawn, exec, execSync } = require('child_process');
 
-const PORT = 4000, SITE = path.join(__dirname, 'docs'), ADMIN = path.join(__dirname, 'admin'), UPLOADS = path.join(SITE, 'uploads');
-const DASHBOARD = `http://127.0.0.1:${PORT}/admin/`;
+const PORT = +process.env.PORT || 7420, SITE = path.join(__dirname, 'docs'), ADMIN = path.join(__dirname, 'admin'), UPLOADS = path.join(SITE, 'uploads');
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml', '.mp4': 'video/mp4', '.webm': 'video/webm' };
 
 const readBody = (req, max) => new Promise((resolve, reject) => {
@@ -70,9 +69,17 @@ const server = http.createServer((req, res) => handle(req, res).catch(err => {
   if (!res.headersSent) res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
   res.end(err.message);
 }));
-const openBrowser = () => process.argv.includes('--no-open') || exec(`${{ win32: 'start ""', darwin: 'open' }[process.platform] || 'xdg-open'} ${DASHBOARD}`);
-server.on('error', err => { if (err.code !== 'EADDRINUSE') throw err; console.log(`Already running: ${DASHBOARD}`); openBrowser(); });
+const base = () => `http://127.0.0.1:${server.address()?.port ?? PORT}`;
+const openBrowser = () => process.argv.includes('--no-open') || exec(`${{ win32: 'start ""', darwin: 'open' }[process.platform] || 'xdg-open'} ${base()}/admin/`);
+let fellBack = false;
+server.on('error', err => {
+  // Windows (Hyper-V/WSL) reserves shifting port ranges; if ours is taken that way, use any free port instead.
+  if (err.code === 'EACCES' && !fellBack) { fellBack = true; console.log(`Port ${PORT} is reserved by Windows, using a free port instead.`); return server.listen(0, '127.0.0.1'); }
+  if (err.code !== 'EADDRINUSE') throw err;
+  console.log(`Already running: ${base()}/admin/`); // a second double-click just reopens the dashboard
+  openBrowser();
+});
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`Spherefolio GM dashboard: ${DASHBOARD}\nSite preview: http://127.0.0.1:${PORT}/\nClose this window to stop.`);
+  console.log(`Spherefolio GM dashboard: ${base()}/admin/\nSite preview: ${base()}/\nClose this window to stop.`);
   openBrowser();
 });

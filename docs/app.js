@@ -110,7 +110,7 @@ function tick(now) {
     rx += (target[0] - rx) * Math.min(1, .12 * dt);
     ry += (((target[1] - ry) % 360 + 540) % 360 - 180) * Math.min(1, .12 * dt);
   } else { ry += (vy + (still ? 0 : S.spin)) * dt; rx += vx * dt; vx *= .95 ** dt; vy *= .95 ** dt; }
-  rx = Math.max(-70, Math.min(70, rx));
+  rx = Math.max(-88, Math.min(88, rx)); // short of 90° so dragging never flips it over
   sphere.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
   const sx = Math.sin(rx * D), cx = Math.cos(rx * D), sy = Math.sin(ry * D), cy = Math.cos(ry * D);
   for (const t of tiles) {
@@ -129,7 +129,7 @@ function tick(now) {
   requestAnimationFrame(tick);
 }
 
-stage.addEventListener('pointerdown', e => { drag = [e.clientX, e.clientY]; moved = 0; aim(null); });
+stage.addEventListener('pointerdown', e => { drag = [e.clientX, e.clientY]; moved = 0; setMid(null); aim(null); });
 addEventListener('pointermove', e => {
   if (!drag) return;
   const dx = e.clientX - drag[0], dy = e.clientY - drag[1];
@@ -151,7 +151,7 @@ const setFull = on => {
 stage.addEventListener('click', e => {
   if (e.detail && moved > 6) return; // that was a drag (e.detail 0 = keyboard click)
   const t = e.target.closest('.tile');
-  if (t && (isFull() || !e.detail)) openProject(+t.dataset.p);
+  if (t && (isFull() || !e.detail)) launch(+t.dataset.p);
   else if (!isFull()) setFull(true);
 });
 sphere.addEventListener('pointerover', e => {
@@ -175,11 +175,49 @@ plist.innerHTML = P.map((p, i) => `<li>${p.images?.length // photo thumbnail whe
   + `<span><b>${esc(p.title)}</b><small>#${String(i + 1).padStart(2, '0')}${p.type || p.year ? ` · ${meta(p)}` : ''}</small></span></button></li>`).join('');
 for (const ev of ['pointerover', 'focusin']) plist.addEventListener(ev, e => {
   const b = e.target.closest('[data-sheet]');
-  if (b) { aim(+b.dataset.sheet); if (ev === 'pointerover') rest(+b.dataset.sheet, true); }
+  if (!b || performance.now() - scrolledAt < 300) return; // items sliding under a still cursor while scrolling don't count
+  aim(+b.dataset.sheet);
+  if (ev === 'pointerover') rest(+b.dataset.sheet, true);
 });
-// Leaving the list resumes the spin, unless project details are open (the sphere holds still while you read).
-plist.addEventListener('pointerleave', () => { clearTimeout(closing); if (openP == null) aim(null); });
-plist.addEventListener('focusout', e => { if (!plist.contains(e.relatedTarget) && openP == null) aim(null); });
+// Leaving the list goes back to the scrolled-to entry (or free spin), unless project details are open.
+plist.addEventListener('pointerleave', () => { clearTimeout(closing); if (openP == null) aim(midP()); });
+plist.addEventListener('focusout', e => { if (!plist.contains(e.relatedTarget) && openP == null) aim(midP()); });
+
+// Scroll focus: scrolling the list (or the wheel over the sphere, one entry per notch) focuses the entry in the middle:
+// it's highlighted, zoomed a little, and its card spins to the front. It stays focused until the sphere is dragged.
+// Only visitor-driven scrolling counts (wheel, touch, keys, scrollbar), not layout shifts while the page loads.
+let scrolledAt = 0, userScrollUntil = 0, wheelAt = 0;
+const userScrolling = () => { userScrollUntil = performance.now() + 800; };
+for (const ev of ['wheel', 'touchmove', 'keydown', 'pointerdown']) plist.addEventListener(ev, userScrolling, { passive: true });
+const midP = () => { const m = plist.querySelector('.pl.mid'); return m ? +m.dataset.sheet : null; };
+function setMid(b) {
+  plist.querySelectorAll('.pl.mid').forEach(x => { if (x !== b) x.classList.remove('mid'); });
+  if (b && !b.classList.contains('mid')) { b.classList.add('mid'); aim(+b.dataset.sheet); }
+}
+plist.addEventListener('scroll', () => {
+  if (performance.now() > userScrollUntil) return;
+  userScrollUntil = Math.max(userScrollUntil, performance.now() + 300); // momentum scrolling keeps counting
+  scrolledAt = performance.now();
+  const box = plist.getBoundingClientRect(), mid = box.top + box.height / 2;
+  let best = null, bestD = Infinity;
+  for (const b of plist.querySelectorAll('.pl')) {
+    const r = b.getBoundingClientRect(), d = Math.abs(r.top + r.height / 2 - mid);
+    if (d < bestD) { bestD = d; best = b; }
+  }
+  setMid(best);
+}, { passive: true });
+stage.addEventListener('wheel', e => {
+  e.preventDefault();
+  if (performance.now() - wheelAt < 140) return; // trackpads fire many small events: one step at a time
+  wheelAt = performance.now();
+  userScrolling();
+  plist.scrollBy({ top: Math.sign(e.deltaY) * (plist.querySelector('li')?.offsetHeight || 60), behavior: 'smooth' });
+}, { passive: false });
+// Spacers above/below the list let the first and last entries reach the middle. Until the visitor scrolls, keep the
+// list resting on the first entry (re-applied when the panel resizes).
+new ResizeObserver(() => {
+  if (!scrolledAt) plist.scrollTop = parseFloat(getComputedStyle(plist, '::before').height) || 0;
+}).observe(plist);
 new ResizeObserver(() => { build(); if (aimed != null) aim(aimed); }).observe(stage); // also does the first build; rebuilds keep the highlight
 requestAnimationFrame(tick);
 
@@ -230,7 +268,34 @@ function closeSheet() {
   if (openP == null) return;
   $('#win-project')?.remove();
   openP = null;
-  aim(null);
+  sphere.querySelectorAll('.launched').forEach(el => el.classList.remove('launched')); // the card returns to the sphere
+  aim(midP());
+}
+// Opening a project: spin its card to the centre, then grow the popup out of that card toward the viewer (the card
+// leaves the sphere while its popup is open).
+let launches = 0;
+async function launch(i) {
+  if (still) return openProject(i);
+  const token = ++launches;
+  aim(i);
+  const t0 = performance.now();
+  await new Promise(done => {
+    const wait = () => {
+      const off = target ? Math.hypot(target[0] - rx, (((target[1] - ry) % 360) + 540) % 360 - 180) : 0;
+      off < 1.5 || performance.now() - t0 > 900 ? done() : requestAnimationFrame(wait);
+    };
+    requestAnimationFrame(wait);
+  });
+  if (token !== launches) return; // another project was clicked meanwhile
+  const card = tiles.find(t => +t.el.dataset.p === i)?.el, from = card?.getBoundingClientRect();
+  openProject(i);
+  const w = $('#win-project'), to = w.getBoundingClientRect();
+  if (!from?.width) return;
+  card.classList.add('launched');
+  w.animate([
+    { transform: `translate(${from.left + from.width / 2 - (to.left + to.width / 2)}px, ${from.top + from.height / 2 - (to.top + to.height / 2)}px) scale(${from.width / to.width}, ${from.height / to.height})`, opacity: .5 },
+    { transform: 'none', opacity: 1 },
+  ], { duration: 480, easing: 'cubic-bezier(.2, .9, .25, 1)' });
 }
 function rest(p, fromList) {
   clearTimeout(closing);
@@ -412,7 +477,7 @@ document.addEventListener('click', e => {
   const d = t.dataset;
   if (t.id === 'full') setFull(!isFull());
   else if (t.id === 'theme') setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
-  else if (d.sheet) openProject(+d.sheet);
+  else if (d.sheet) launch(+d.sheet);
   else if (d.open) typeRun(`open ${+d.open + 1}`);
   else if (d.cmd) typeRun(d.cmd);
   else if (d.v) view(+d.v);

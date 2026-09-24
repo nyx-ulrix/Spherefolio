@@ -118,13 +118,17 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .tile .media > * { pointer-events: none }
 .mini { display: block; width: 100%; height: 100% }
 .sphere-body { display: flex; flex: 1; min-height: 0 }
-#projects { flex: 0 0 clamp(210px, 34%, 320px); margin: 0; padding: 6px; overflow-y: auto; list-style: none; background: var(--sunk); border-left: 1px solid var(--line) }
+#projects { flex: 0 0 clamp(210px, 34%, 320px); margin: 0; padding: 6px; overflow: hidden auto; overflow-anchor: none; list-style: none; background: var(--sunk); border-left: 1px solid var(--line) }
 .pl { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 10px; width: 100%; padding: 6px; background: none; border: 1px solid transparent; border-radius: 5px; text-align: left }
 .pl:hover, .pl:focus-visible { background: var(--raise); border-color: var(--accent); outline: none }
 .pl .mini { height: 48px; overflow: hidden; border: 1px solid var(--line); border-radius: 4px }
 .pl b { display: block; font-size: 13px; font-weight: 600; line-height: 1.2 }
 .pl > span:last-child { min-width: 0 }
 .pl small { display: block; overflow: hidden; color: var(--accent2); font: 10px var(--mono); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis }
+.pl { transition: scale .2s ease, background .2s, border-color .2s }
+.pl.mid { background: var(--raise); border-color: var(--accent); scale: 1.04 } /* the scroll-focused entry */
+#projects::before, #projects::after { content: ""; display: block; height: calc(50% - 32px) } /* let ends reach the middle */
+.tile.launched { visibility: hidden } /* its popup is open: the card has "left" the sphere */
 .pl.no-img { grid-template-columns: 1fr; padding: 9px 8px }
 .pl.no-img b { font-size: 16px }
 .full #sphere-panel { position: fixed; inset: 0; z-index: 15; height: auto; background: var(--bg); border: 0; border-radius: 0 }

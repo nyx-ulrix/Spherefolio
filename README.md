@@ -6,7 +6,7 @@ My portfolio as one screen: a draggable 3D sphere of project cards (top left, cl
 
 ## Editing (on this PC)
 
-Double-click **`Spherefolio.cmd`** (or run `node server.js`). The GM dashboard opens at http://127.0.0.1:4000/admin/.
+Double-click **`Spherefolio.cmd`** (or run `node server.js`). The GM dashboard opens at http://127.0.0.1:7420/admin/.
 
 - **Projects** (up to 50): add, reorder, edit, and drop images or short videos (MP4/WebM, up to 50 MB). The first one replaces the card on the sphere. Images are resized and converted to WebP in the browser.
 - **Site & UI**: name, headline, summary, contact links, accent + secondary colour, sphere size, tile fill, and spin.
