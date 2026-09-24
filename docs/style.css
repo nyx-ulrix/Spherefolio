@@ -82,7 +82,14 @@ body:not(.full) #stage { cursor: zoom-in }
 
 /* About me */
 #about h2 { font-size: 24px }
-#about .links { margin-top: 10px }
+#about .links { margin: 10px 0 14px }
+#about details { border-top: 1px solid var(--line) }
+#about details[open] { padding-bottom: 8px }
+#about summary { display: flex; align-items: center; gap: 10px; padding: 11px 2px; color: var(--accent2); font: 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; list-style: none; cursor: pointer; user-select: none }
+#about summary::-webkit-details-marker { display: none }
+#about summary::after { content: "▸"; margin-left: auto; font-size: 13px; transition: transform .15s }
+#about details[open] > summary::after { transform: rotate(90deg) }
+#about summary:hover, #about summary:focus-visible { color: var(--text); outline: none }
 #about .entry > b { font-size: 14px }
 
 /* Windows (project sheets) */

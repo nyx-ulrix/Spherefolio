@@ -36,12 +36,13 @@ document.title = `${site.name} · Portfolio`;
 document.documentElement.style.setProperty('--accent', site.accent || '#ff6400');
 document.documentElement.style.setProperty('--accent2', site.accent2 || '#b79cff');
 
-// ---- About me: everything in one scrolling column.
+// ---- About me: each section is a native <details> dropdown; Summary starts open.
+const drop = (name, count, html, open) => `<details${open ? ' open' : ''}><summary>${esc(name)}${count ? `<span class="dim">${count}</span>` : ''}</summary>${html}</details>`;
 $('#about-body').innerHTML = `
   <h2>${esc(site.name)}</h2><p class="muted">${esc(site.role)} · ${esc(site.location)}</p>
   ${linkBtns(site.links)}
-  <h3>Summary</h3><p>${esc(site.summary)}</p>
-  ${resume.map(r => `<h3>${esc(r.name)}</h3>${r.items.map(entry).join('')}`).join('')}`;
+  ${drop('Summary', 0, `<p>${esc(site.summary)}</p>`, true)}
+  ${resume.map(r => drop(r.name, r.items.length, r.items.map(entry).join(''))).join('')}`;
 
 // ---- Sphere: frames sit on a Fibonacci lattice facing outward; each frame only the wrapper rotates.
 let tiles = [], R = 1, rx = -12, ry = 0, vx = 0, vy = 0, drag = null, moved = 0;
