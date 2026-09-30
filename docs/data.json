@@ -31,6 +31,21 @@
       ]
     },
     {
+      "title": "PixelPad",
+      "tagline": "Tablet and pen as a PC trackpad, drawing tablet and controller",
+      "year": "2026",
+      "type": "Passion project",
+      "tools": "Kotlin, Android, Python, Tkinter, Windows API, ViGEm, PyInstaller",
+      "links": "GitHub | https://github.com/nyx-ulrix/pixelpad\nRelease | https://github.com/nyx-ulrix/pixelpad/releases/tag/v1.0.0",
+      "text": "Built an Android app in Kotlin that turns a stylus tablet into a PC trackpad, drawing tablet, game controller and slide clicker.\nInjected the pen into Windows as a real pen device (pressure, tilt, hover, eraser) and multi-finger input as real touch, using the Windows synthetic pointer APIs from Python.\nEmulated a DualShock 4 through ViGEm with PlayStation, Xbox and fighting-pad layouts, and up to four tablets as four players.\nDesigned a 16-byte packet protocol over UDP (Wi-Fi, Bluetooth tethering) and TCP through adb reverse (USB), with QR-code pairing.\nSmoothed pen strokes with a One Euro filter on the tablet and a timestamped jitter buffer on the PC.\nEngineered PixelPad Desk, a Tkinter companion with a connection checklist, tray icon and pen-cursor overlay, packaged as a single exe with PyInstaller.\nDesigned a retro pastel pixel UI from line-drawn icons, with recordable pen buttons, pen gestures and custom tablet keys.\nPublished v1.0.0 on GitHub with the Android APK and the Windows exe.",
+      "writeup": "I wanted my Android tablet and its pen to work as an input device for my PC: a trackpad, a drawing tablet, a game controller and a slide clicker in one app. So I built PixelPad, an Android app plus a small Windows companion called PixelPad Desk.\n\nOn the tablet you switch between four screens. The pen reaches the whole PC screen, or just part of it, and shows up in Windows as a real pen with pressure, tilt, hover and an eraser. Two or more fingers go to Windows as real touch, so the trackpad follows whatever gestures Windows is set up for. The controller screen looks like a PlayStation, Xbox or fighting pad to games.\n\nThe interesting part was making a pen feel like a tablet over a network. Every input is a 16-byte packet, sent over UDP on Wi-Fi or Bluetooth tethering, or over TCP through adb reverse on a USB cable. The tablet smooths strokes with a One Euro filter and timestamps each sample, and the PC replays them with the same spacing, so bursts of Wi-Fi packets don't make lines jerky.\n\nVersion 1.0.0 is on GitHub with the Android APK and a single-file Windows exe. It has no pairing password yet, so it is meant for networks you trust.",
+      "images": [
+        "pixelpad.webp",
+        "pixelpad-2.webp",
+        "pixelpad-3.webp"
+      ]
+    },
+    {
       "title": "Deployer",
       "tagline": "Self-Hosted Backend and Deployment Platform",
       "year": "2026",
