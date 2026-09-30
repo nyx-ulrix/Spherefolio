@@ -23,6 +23,8 @@ const bullets = s => { const l = lines(s); return l.length > 1 ? `<ul>${l.map(x 
 const chips = s => lines(s).length ? `<div class="chips">${s.split(',').map(t => `<span>${esc(t.trim())}</span>`).join('')}</div>` : '';
 const linkBtns = s => `<div class="links">${links(s).map(l => `<a class="btn" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join('')}</div>`;
 const stat = (k, v) => v ? `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>` : '';
+// Optional narrative write-up per project: paragraphs separated by a blank line.
+const writeup = p => p.writeup?.trim() ? `<h3>Write-up</h3>${p.writeup.trim().split(/\n\s*\n/).map(x => `<p>${esc(x.trim())}</p>`).join('')}` : '';
 // Entries with only a title + one line (skills, languages) render as chips; jobs/education render as bullets.
 const entry = it => !it.org && !it.when && lines(it.text).length === 1
   ? `<div class="entry"><b>${esc(it.title)}</b>${chips(it.text)}</div>`
@@ -285,6 +287,7 @@ async function launch(i) {
       off < 1.5 || performance.now() - t0 > 900 ? done() : requestAnimationFrame(wait);
     };
     requestAnimationFrame(wait);
+    setTimeout(done, 1000); // backstop: frames can stall (background tab), the popup must still open
   });
   if (token !== launches) return; // another project was clicked meanwhile
   const card = tiles.find(t => +t.el.dataset.p === i)?.el, from = card?.getBoundingClientRect();
@@ -316,7 +319,7 @@ function openProject(i) {
     : `<div class="mgrid feat" style="--cols:${Math.ceil((n - 1) / 2)}">`;
   openWin('win-project', p.title, `
     ${n ? `${grid}${im.map(tile).join('')}</div>${head}` : `<div class="sheet-top"><div class="portrait">${card(p, i)}</div>${head}</div>`}
-    ${chips(p.tools)}${bullets(p.text)}${linkBtns(p.links)}
+    ${chips(p.tools)}${bullets(p.text)}${writeup(p)}${linkBtns(p.links)}
     <div class="viewer" hidden><button class="vx btn" aria-label="Back to project">✕</button><button class="vnav" data-step="-1" aria-label="Previous">‹</button><div class="vmedia"></div><button class="vnav" data-step="1" aria-label="Next">›</button></div>`);
 }
 function view(j) {
@@ -378,6 +381,7 @@ ${esc(p.tagline)}
 <span class="dim">year</span> ${esc(p.year)}   <span class="dim">type</span> ${esc(p.type)}
 <span class="dim">tools</span> ${esc(p.tools)}
 ${lines(p.text).map(l => ` • ${esc(l)}`).join('\n')}
+${p.writeup ? `\n<span class="dim">── write-up ──</span>\n${esc(p.writeup.trim())}\n` : ''}
 ${links(p.links).map(ext).join(' ')}${im.length ? '\n' + im.map(f => `<img src="${thumb(f)}" alt="">`).join('') : ''}`);
   },
   whoami: () => print(`${banner() || `<b class="hl">${esc(site.name)}</b>\n`}${esc(site.role)} · ${esc(site.location)}\n\n${esc(site.summary)}\n\n${links(site.links).map(ext).join(' ')}`),

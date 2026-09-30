@@ -16,7 +16,7 @@ const log = (s, raw) => { const l = $('#log'); l.textContent += raw ? s : `${s}\
 const field = (label, path, type = 'text', attrs = '') => `<label><span>${label}</span>${type === 'area'
   ? `<textarea data-path="${path}" rows="${Math.max(3, Math.min(14, String(get(path) ?? '').split('\n').length + 1))}">${esc(get(path))}</textarea>`
   : `<input type="${type}" data-path="${path}" value="${esc(get(path))}" ${attrs}>`}</label>`;
-const blank = () => ({ title: 'New project', tagline: '', year: String(new Date().getFullYear()), type: '', tools: '', links: '', text: '', images: [] });
+const blank = () => ({ title: 'New project', tagline: '', year: String(new Date().getFullYear()), type: '', tools: '', links: '', text: '', writeup: '', images: [] });
 const swap = (a, x, y) => { if (a[x] && a[y]) [a[x], a[y]] = [a[y], a[x]]; };
 const rmFiles = file => [file, thumbName(file)].forEach(f => api(`/api/upload?name=${f}`, { method: 'DELETE' }));
 
@@ -56,6 +56,7 @@ function render() {
       <div class="grid">${field('Title', `${b}title`)}${field('Tagline', `${b}tagline`)}${field('Year', `${b}year`)}${field('Type', `${b}type`)}</div>
       ${field('Tools (comma separated)', `${b}tools`)}
       ${field('Details (one bullet per line)', `${b}text`, 'area')}
+      ${field('Write-up (a few short paragraphs; blank line between them)', `${b}writeup`, 'area')}
       ${field('Links (one per line: Label | https://…)', `${b}links`, 'area')}
       <h3>Images &amp; videos · first is the cover on the sphere</h3>
       <label class="drop">Drop images or videos (MP4/WebM, max 50 MB) anywhere on this page, or click to choose<input type="file" accept="image/*,video/mp4,video/webm" multiple hidden></label>
