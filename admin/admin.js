@@ -58,7 +58,7 @@ function render() {
       ${field('Details (one bullet per line)', `${b}text`, 'area')}
       ${field('Write-up (a few short paragraphs; blank line between them)', `${b}writeup`, 'area')}
       ${field('Links (one per line: Label | https://…)', `${b}links`, 'area')}
-      <h3>Images &amp; videos · first is the cover on the sphere</h3>
+      <h3>Images &amp; videos · first is the cover on the spiral</h3>
       <label class="drop">Drop images or videos (MP4/WebM, max 50 MB) anywhere on this page, or click to choose<input type="file" accept="image/*,video/mp4,video/webm" multiple hidden></label>
       <div class="imgs">${p.images.map((f, j) => `<figure><img src="${thumb(f)}" alt="">${isVid(f) ? '<i class="badge">▶ video</i>' : ''}<figcaption>${j ? `<button class="btn" data-act="cover" data-j="${j}">★ Make cover</button>` : '<span class="hl">★ Cover</span>'}<button class="btn danger" data-act="rmimg" data-j="${j}" aria-label="Remove image">✕</button></figcaption></figure>`).join('')}</div>`;
   } else if (kind === 'site') {
@@ -68,8 +68,6 @@ function render() {
       ${field('Name banner (ASCII art shown instead of your name; leave empty for plain text)', 'site.banner', 'area')}
       ${field('Summary', 'site.summary', 'area')}
       ${field('Contact links (one per line: Label | https://… or mailto:…)', 'site.links', 'area')}
-      <h3>Sphere</h3>
-      <div class="grid">${field('Size', 'sphere.size', 'range', 'min="0.2" max="0.5" step="0.01"')}${field('Tile fill', 'sphere.fill', 'range', 'min="0.4" max="1" step="0.05"')}${field('Spin speed', 'sphere.spin', 'range', 'min="0" max="0.4" step="0.01"')}${field('Minimum tiles (repeats covers)', 'sphere.minTiles', 'number', 'min="0" max="120"')}</div>
       <p class="muted">Open “Preview site” and refresh it to see changes.</p>`;
   } else {
     ed.innerHTML = `<div class="ed-head"><h2>Resume &amp; jobs</h2><button class="btn" data-act="addsec">+ Add section</button></div>

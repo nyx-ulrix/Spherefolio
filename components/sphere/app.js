@@ -1,4 +1,4 @@
-// Spherefolio: a Spiral view of project cards (a CSS-3D helix), an About panel and a terminal, all from data.json.
+// Spherefolio: a CSS-3D sphere of framed project tiles (Fibonacci lattice), an About panel and a terminal, all from data.json.
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
 const lines = s => String(s ?? '').split('\n').map(l => l.trim()).filter(Boolean);
@@ -12,9 +12,17 @@ const media = (f, full) => isVid(f)
   ? `<video src="${src(f)}" poster="${thumb(f)}" muted loop playsinline ${full ? 'controls autoplay' : 'preload="none"'}></video>`
   : `<img src="${full ? src(f) : thumb(f)}" alt="" draggable="false">`;
 const meta = p => esc([p.type, p.year].filter(Boolean).join(' · '));
+// Project card: gradient card when empty; a cover image/video replaces it when set. Big title on top, details below.
+const card = (p, i) => {
+  const f = p.images?.[0], text = `<b>${esc(p.title)}</b>${p.tagline ? `<span>${esc(p.tagline)}</span>` : ''}<small>${meta(p)}</small>`;
+  return f
+    ? `<span class="media">${media(f)}</span><span class="label">${text}</span>`
+    : `<span class="card">${text}</span>`;
+};
 const bullets = s => { const l = lines(s); return l.length > 1 ? `<ul>${l.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : l.length ? `<p>${esc(l[0])}</p>` : ''; };
 const chips = s => lines(s).length ? `<div class="chips">${s.split(',').map(t => `<span>${esc(t.trim())}</span>`).join('')}</div>` : '';
 const linkBtns = s => `<div class="links">${links(s).map(l => `<a class="btn" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join('')}</div>`;
+const stat = (k, v) => v ? `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>` : '';
 // Optional narrative write-up per project: paragraphs separated by a blank line.
 const writeup = p => p.writeup?.trim() ? `<h3>Write-up</h3>${p.writeup.trim().split(/\n\s*\n/).map(x => `<p>${esc(x.trim())}</p>`).join('')}` : '';
 // Entries with only a title + one line (skills, languages) render as chips; jobs/education render as bullets.
@@ -24,7 +32,8 @@ const entry = it => !it.org && !it.when && lines(it.text).length === 1
 
 const data = await fetch('data.json', { cache: 'no-cache' }).then(r => r.json());
 const { site, projects: P, resume } = data;
-const stage = $('#stage'), spiral = $('#spiral');
+const S = { size: .38, fill: .8, spin: .06, minTiles: 24, ...data.sphere };
+const stage = $('#stage'), sphere = $('#sphere'), caption = $('#caption');
 document.title = `${site.name} · Portfolio`;
 document.documentElement.style.setProperty('--accent', site.accent || '#ff0490');
 document.documentElement.style.setProperty('--pink', site.accent2 || '#f9a8ce'); // secondary colour; light mode deepens it (CSS)
@@ -40,104 +49,76 @@ $('#about-body').innerHTML = `
   ${drop('Summary', 0, `<p>${esc(site.summary)}</p>`, true)}
   ${resume.map(r => drop(r.name, r.items.length, r.items.map(entry).join(''))).join('')}`;
 
-// ---- Spiral view: project cards on a helix ribbon that winds past the viewer. Scrolling turns it (wheel, swipe, arrow
-// keys, or scrolling the project list) and it settles with one card in front: the focused project.
-const STEP = 40; // degrees between neighbouring cards: 9 per turn
-const still = matchMedia('(prefers-reduced-motion: reduce)').matches, D = Math.PI / 180;
-let cards = [], RISE = 1, pos = 0, goal = 0, drawn = null, focused = -1, dir = 1, settle;
-const focusEl = $('#focus'), intro = $('#intro'), w1 = $('#w1'), w2 = $('#w2');
-const [first, ...more] = site.name.toUpperCase().split(/\s+/); // the name, huge and grey behind the spiral
-w1.textContent = first;
-w2.textContent = more.join(' ');
-$('#mini').textContent = site.role;
-const clampGoal = g => Math.max(0, Math.min(P.length - 1, g));
-function build() { // cards are placed once; each frame only moves the wrapper
-  const w = stage.clientWidth, h = stage.clientHeight;
-  const H = Math.min(h * .3, w * .22), R = Math.max(H * 1.9, Math.min(w * .32, h * .6));
-  RISE = H * 1.3 / (360 / STEP); // a full turn drops a little more than a card's height, so turns never overlap
-  stage.style.perspective = `${R * 3.4}px`;
-  spiral.style.cssText = `--w:${2 * Math.PI * R / (360 / STEP) * .985}px;--h:${H}px`; // card width = arc per step: one ribbon
-  spiral.innerHTML = '';
-  cards = P.map((p, i) => {
-    const el = document.createElement('button');
+// ---- Sphere: frames sit on a Fibonacci lattice facing outward; each frame only the wrapper rotates.
+let tiles = [], R = 1, rx = -12, ry = 0, vx = 0, vy = 0, drag = null, moved = 0;
+function build() {
+  const N = P.length && Math.max(P.length, S.minTiles | 0);
+  R = Math.min(stage.clientWidth, stage.clientHeight) * S.size;
+  const w = R * Math.sqrt(4 * Math.PI / Math.max(N, 1)) * S.fill; // tile side that fills its share of the surface
+  stage.style.perspective = `${R * 4}px`;
+  sphere.style.cssText = `--w:${w}px;--h:${w * .75}px`;
+  sphere.innerHTML = '';
+  const photos = [...P.keys()].filter(i => P[i].images?.length), pool = photos.length ? photos : [...P.keys()];
+  tiles = Array.from({ length: N }, (_, i) => {
+    const phi = Math.acos(1 - 2 * (i + .5) / N), theta = Math.PI * (1 + Math.sqrt(5)) * i;
+    const x = R * Math.cos(theta) * Math.sin(phi), y = R * Math.sin(theta) * Math.sin(phi), z = R * Math.cos(phi);
+    const p = i < P.length ? i : pool[(i - P.length) % pool.length], el = document.createElement('button'); // extra tiles repeat photo projects
     el.className = 'tile';
-    el.dataset.p = i;
-    el.innerHTML = p.images?.length ? media(p.images[0]) : `<span class="ph"><b>${esc(p.title)}</b><small>${meta(p)}</small></span>`;
-    el.setAttribute('aria-label', p.title);
-    el.style.transform = `rotateY(${i * STEP}deg) translateZ(${R}px) translateY(${i * RISE}px)`;
-    spiral.append(el);
-    return { el, video: el.querySelector('video'), live: false, back: null };
+    el.dataset.p = p;
+    el.innerHTML = card(P[p], p);
+    el.setAttribute('aria-label', P[p].title);
+    if (i >= P.length) el.tabIndex = -1; // repeated covers: one tab stop per project
+    el.style.transform = `translate3d(${x}px,${y}px,${z}px) rotateY(${Math.atan2(x, z)}rad) rotateX(${Math.asin(-y / R)}rad)`;
+    sphere.append(el);
+    return { el, x, y, z, back: null, video: el.querySelector('video'), live: false };
   });
-  drawn = null;
-  focused = -1;
 }
-function draw() {
-  drawn = pos;
-  spiral.style.transform = `rotateX(-8deg) rotateZ(-5deg) translateY(${-pos * RISE}px) rotateY(${-pos * STEP}deg)`;
-  cards.forEach((c, i) => {
-    const d = i - pos, facing = Math.cos(d * STEP * D), fade = Math.min(1, Math.max(0, (Math.abs(d) - 4.5) / 4));
-    c.el.style.opacity = ((1 - fade) * (.22 + .78 * Math.sqrt(Math.max(0, facing)))).toFixed(3); // dimmer with depth
-    const back = facing < .05 || fade >= 1; // side-on, behind, or faded out: not clickable
-    if (c.back !== back) c.el.style.pointerEvents = (c.back = back) ? 'none' : '';
-    const live = !still && Math.abs(d) < .6; // only the front card's video plays (and downloads)
-    if (c.video && c.live !== live) (c.live = live) ? c.video.play().catch(() => {}) : c.video.pause();
-  });
-  const t = pos / Math.max(1, P.length - 1);
-  w1.style.transform = `translateX(${-t * 14}vw)`; // the name drifts apart as you scroll through
-  w2.style.transform = `translateX(${t * 14}vw)`;
-  intro.style.opacity = Math.max(0, 1 - pos * 2).toFixed(2);
-  setFocus(Math.round(pos));
-}
-function setFocus(i) { // the card in front: named bottom-left, highlighted in the list
-  if (i === focused || !P[i]) return;
-  const firstTime = focused < 0, p = P[i];
-  focused = i;
-  focusEl.dataset.sheet = i;
-  focusEl.innerHTML = `<b>${esc(p.title)}</b>${p.tagline ? `<span>${esc(p.tagline)}</span>` : ''}<small>${meta(p)}<em>View project</em></small>`;
-  cards.forEach((c, j) => c.el.classList.toggle('lit', j === i));
-  syncList(Math.round(goal), false, firstTime ? 'auto' : 'smooth');
-}
-let last = performance.now();
+
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches, D = Math.PI / 180;
+let last = performance.now(), frames = 0, fpsAt = last;
 function tick(now) {
   const dt = Math.min(now - last, 50) / 16.7;
   last = now;
-  if (!isDev() && cards.length) { // hidden in Developer mode: skip the work
-    pos += (goal - pos) * (still ? 1 : Math.min(1, .1 * dt));
-    if (Math.abs(goal - pos) < 1e-3) pos = goal;
-    if (pos !== drawn) draw();
+  if (isDev()) return requestAnimationFrame(tick); // sphere hidden in Developer mode: skip the work
+  if (drag) { vx *= .7; vy *= .7; } // holding still before release shouldn't fling
+  else if (target) { // ease toward the project picked in the list (shortest way round)
+    vx = vy = 0;
+    rx += (target[0] - rx) * Math.min(1, .12 * dt);
+    ry += (((target[1] - ry) % 360 + 540) % 360 - 180) * Math.min(1, .12 * dt);
+  } else { ry += (vy + (still ? 0 : S.spin)) * dt; rx += vx * dt; vx *= .95 ** dt; vy *= .95 ** dt; }
+  rx = Math.max(-88, Math.min(88, rx)); // short of 90° so dragging never flips it over
+  sphere.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+  const sx = Math.sin(rx * D), cx = Math.cos(rx * D), sy = Math.sin(ry * D), cy = Math.cos(ry * D);
+  for (const t of tiles) {
+    const z = t.y * sx + (t.z * cy - t.x * sy) * cx; // tile depth after the wrapper's rotateX·rotateY
+    const k = (z / R + 1) / 2;                       // 0 = far side, 1 = facing the viewer
+    t.el.style.opacity = (.1 + .9 * k * k).toFixed(2);
+    if (t.back !== z < 0) t.el.style.pointerEvents = (t.back = z < 0) ? 'none' : '';
+    const live = !still && z > R * .4; // only videos near the front play (and download)
+    if (t.video && t.live !== live) (t.live = live) ? t.video.play().catch(() => {}) : t.video.pause();
+  }
+  frames++;
+  if (now - fpsAt > 1000) {
+    $('#status').textContent = `${Math.round(frames * 1000 / (now - fpsAt))} FPS · ${P.length} PROJECTS`;
+    frames = 0; fpsAt = now;
   }
   requestAnimationFrame(tick);
 }
-// The wheel or a vertical swipe turns it continuously; when it stops it settles on a card (the next one once you're
-// a third of the way there, so one wheel notch = one project).
-function nudge(dg) {
-  dir = Math.sign(dg) || dir;
-  goal = clampGoal(goal + dg);
-  clearTimeout(settle);
-  settle = setTimeout(() => { goal = clampGoal(dir > 0 ? Math.ceil(goal - .3) : Math.floor(goal + .3)); }, 140);
-}
-function aim(p) { // turn the spiral so this project is in front
-  if (p == null) return;
-  clearTimeout(settle);
-  goal = clampGoal(p);
-}
-stage.addEventListener('wheel', e => {
-  e.preventDefault();
-  closeSheet();
-  nudge((e.deltaY || e.deltaX) / (e.deltaMode ? 3 : 280));
-}, { passive: false });
-let touchY = null;
-stage.addEventListener('touchstart', e => { touchY = e.touches[0].clientY; }, { passive: true });
-stage.addEventListener('touchmove', e => {
-  const y = e.touches[0].clientY;
-  if (touchY != null) nudge((touchY - y) / 120);
-  touchY = y;
-}, { passive: true });
-stage.addEventListener('click', e => { const t = e.target.closest('.tile'); if (t) launch(+t.dataset.p); });
-spiral.addEventListener('pointerover', e => { const t = e.target.closest('.tile'); if (t) rest(+t.dataset.p); });
-spiral.addEventListener('pointerleave', () => clearTimeout(closing));
-// Two modes: the Spiral view (the landing page), or Developer mode = the terminal with About me beside it (#dev links
-// straight to it). In the Spiral view, About me opens as a drawer from the right.
+
+stage.addEventListener('pointerdown', e => { drag = [e.clientX, e.clientY]; moved = 0; setMid(null); aim(null); });
+addEventListener('pointermove', e => {
+  if (!drag) return;
+  const dx = e.clientX - drag[0], dy = e.clientY - drag[1];
+  drag = [e.clientX, e.clientY];
+  moved += Math.abs(dx) + Math.abs(dy);
+  if (moved > 6) stage.classList.add('dragged'); // they've found it: fade the "drag to move" hint
+  ry += vy = dx * .25;
+  rx += vx = -dy * .25;
+});
+for (const ev of ['pointerup', 'pointercancel']) addEventListener(ev, () => { drag = null; });
+// Two modes: the sphere on its own (default), or Developer mode = the terminal with About me beside it (#dev links
+// straight to it). In sphere mode, About me opens as a drawer from the right.
+const hint = () => 'Projects · drag to spin, click a card';
 const isDev = () => document.body.classList.contains('dev');
 const setAbout = on => document.body.classList.toggle('about-open', on);
 function setDev(on) {
@@ -146,25 +127,44 @@ function setDev(on) {
   closeSheet();
   history.replaceState(null, '', on ? '#dev' : location.pathname + location.search);
 }
-// ---- Project list beside the spiral: hover/focus turns that project's card to the front, click opens it.
+stage.addEventListener('click', e => {
+  if (e.detail && moved > 6) return; // that was a drag (e.detail 0 = keyboard click)
+  const t = e.target.closest('.tile');
+  if (t) launch(+t.dataset.p);
+});
+sphere.addEventListener('pointerover', e => {
+  const t = e.target.closest('.tile'), p = t && P[t.dataset.p];
+  if (p) { caption.textContent = `▸ ${[p.title, p.type, p.year].filter(Boolean).join(' · ')}`; rest(+t.dataset.p); }
+});
+sphere.addEventListener('pointerleave', () => { clearTimeout(closing); caption.textContent = hint(); });
+// ---- Project list beside the sphere: hover/focus spins that project's card to the front, click opens it.
+let target = null, aimed = null; // target: [rx, ry] in degrees, or null to free-spin
+function aim(p) {
+  aimed = p;
+  const t = p == null ? null : tiles.find(t => +t.el.dataset.p === p);
+  target = t && [Math.atan2(t.y, Math.hypot(t.x, t.z)) / D, Math.atan2(-t.x, t.z) / D];
+  for (const x of tiles) x.el.classList.toggle('lit', x === t);
+  caption.textContent = t ? `▸ ${[P[p].title, P[p].type, P[p].year].filter(Boolean).join(' · ')}` : hint();
+}
 const plist = $('#projects');
 plist.innerHTML = P.map((p, i) => `<li>${p.images?.length // photo thumbnail when there is one; otherwise just a bigger name
   ? `<button class="pl" data-sheet="${i}"><span class="mini"><img src="${thumb(p.images[0])}" alt="" loading="lazy"></span>`
   : `<button class="pl no-img" data-sheet="${i}">`}`
-  + `<span><b>${esc(p.title)}</b><small>${meta(p)}</small></span></button></li>`).join('');
+  + `<span><b>${esc(p.title)}</b><small>#${String(i + 1).padStart(2, '0')}${p.type || p.year ? ` · ${meta(p)}` : ''}</small></span></button></li>`).join('');
 for (const ev of ['pointerover', 'focusin']) plist.addEventListener(ev, e => {
   const b = e.target.closest('[data-sheet]');
   if (!b || performance.now() - scrolledAt < 300) return; // items sliding under a still cursor while scrolling don't count
   aim(+b.dataset.sheet);
   if (ev === 'pointerover') rest(+b.dataset.sheet, true);
 });
-// Leaving the list goes back to the focused entry, unless project details are open.
+// Leaving the list goes back to the scrolled-to entry (or free spin), unless project details are open.
 plist.addEventListener('pointerleave', () => { clearTimeout(closing); if (openP == null) aim(midP()); });
 plist.addEventListener('focusout', e => { if (!plist.contains(e.relatedTarget) && openP == null) aim(midP()); });
 
-// Scroll focus: scrolling the list focuses the entry in the middle (the top one on phones): it's highlighted, zoomed a
-// little, and the spiral turns to it. Only visitor-driven scrolling counts (wheel, touch, keys, scrollbar).
-let scrolledAt = 0, userScrollUntil = 0;
+// Scroll focus: scrolling the list (or the wheel over the sphere, one entry per notch) focuses the entry in the middle:
+// it's highlighted, zoomed a little, and its card spins to the front. It stays focused until the sphere is dragged.
+// Only visitor-driven scrolling counts (wheel, touch, keys, scrollbar), not layout shifts while the page loads.
+let scrolledAt = 0, userScrollUntil = 0, wheelAt = 0;
 const userScrolling = () => { userScrollUntil = performance.now() + 800; };
 for (const ev of ['wheel', 'touchmove', 'keydown', 'pointerdown']) plist.addEventListener(ev, userScrolling, { passive: true });
 const midP = () => { const m = plist.querySelector('.pl.mid'); return m ? +m.dataset.sheet : null; };
@@ -185,24 +185,30 @@ plist.addEventListener('scroll', () => {
   }
   setMid(best);
 }, { passive: true });
-// Phones show the list under the spiral, and the focused entry sits at its top instead of the middle.
+// Phones show the list under the sphere, and the focused entry sits at its top instead of the middle.
 const phone = () => matchMedia('(max-width: 800px)').matches;
-const hovering = () => matchMedia('(hover: hover)').matches && plist.matches(':hover');
-function placeList(b, behavior) {
-  const box = plist.getBoundingClientRect(), r = b.getBoundingClientRect();
-  plist.scrollBy({ top: phone() ? r.top - box.top - parseFloat(getComputedStyle(plist).paddingTop) : r.top + r.height / 2 - (box.top + box.height / 2), behavior });
-}
-function syncList(i, picked, behavior = 'smooth') { // mark the focused project's entry and bring it into view
-  if (!picked && (performance.now() < userScrollUntil || hovering())) return; // they're using the list itself
+function reveal(i) { // focus a project's entry; on phones scroll it to the top of the list
   const b = plist.querySelector(`[data-sheet="${i}"]`);
   if (!b) return;
-  plist.querySelectorAll('.pl.mid').forEach(x => x.classList.remove('mid'));
-  b.classList.add('mid');
-  if (!hovering()) placeList(b, behavior); // never slide entries out from under the pointer
+  setMid(b);
+  if (phone()) plist.scrollBy({ top: b.getBoundingClientRect().top - plist.getBoundingClientRect().top - parseFloat(getComputedStyle(plist).paddingTop), behavior: 'smooth' });
 }
-new ResizeObserver(() => { const b = plist.querySelector('.pl.mid'); if (b) placeList(b, 'auto'); }).observe(plist);
-new ResizeObserver(() => { // also does the first build
-  if (stage.clientWidth) build(); // hidden in Developer mode: rebuilt when it's shown again
+stage.addEventListener('wheel', e => {
+  e.preventDefault();
+  if (performance.now() - wheelAt < 140) return; // trackpads fire many small events: one step at a time
+  wheelAt = performance.now();
+  userScrolling();
+  plist.scrollBy({ top: Math.sign(e.deltaY) * (plist.querySelector('li')?.offsetHeight || 60), behavior: 'smooth' });
+}, { passive: false });
+// Spacers above/below the list let the first and last entries reach the middle. Until the visitor scrolls, keep the
+// list resting on the first entry (re-applied when the panel resizes).
+new ResizeObserver(() => {
+  if (!scrolledAt) plist.scrollTop = parseFloat(getComputedStyle(plist, '::before').height) || 0;
+}).observe(plist);
+new ResizeObserver(() => { // also does the first build; rebuilds keep the highlight
+  if (!stage.clientWidth) return; // hidden in Developer mode: rebuild when it's shown again
+  build();
+  if (aimed != null) aim(aimed);
 }).observe(stage);
 requestAnimationFrame(tick);
 
@@ -253,27 +259,27 @@ function closeSheet() {
   if (openP == null) return;
   $('#win-project')?.remove();
   openP = null;
-  spiral.querySelectorAll('.launched').forEach(el => el.classList.remove('launched')); // the card returns to the spiral
+  sphere.querySelectorAll('.launched').forEach(el => el.classList.remove('launched')); // the card returns to the sphere
   aim(midP());
 }
-// Opening a project: turn its card to the front, then grow the popup out of that card toward the viewer (the card
-// leaves the spiral while its popup is open).
+// Opening a project: spin its card to the centre, then grow the popup out of that card toward the viewer (the card
+// leaves the sphere while its popup is open).
 let launches = 0;
 async function launch(i) {
-  aim(i);
-  syncList(i, true);
   if (still) return openProject(i);
   const token = ++launches;
+  reveal(i); // highlights it in the list and spins its card to the front
   const t0 = performance.now();
   await new Promise(done => {
     const wait = () => {
-      Math.abs(pos - i) < .02 || performance.now() - t0 > 900 ? done() : requestAnimationFrame(wait);
+      const off = target ? Math.hypot(target[0] - rx, (((target[1] - ry) % 360) + 540) % 360 - 180) : 0;
+      off < 1.5 || performance.now() - t0 > 900 ? done() : requestAnimationFrame(wait);
     };
     requestAnimationFrame(wait);
     setTimeout(done, 1000); // backstop: frames can stall (background tab), the popup must still open
   });
   if (token !== launches) return; // another project was clicked meanwhile
-  const card = cards[i]?.el, from = card?.getBoundingClientRect();
+  const card = tiles.find(t => +t.el.dataset.p === i)?.el, from = card?.getBoundingClientRect();
   openProject(i);
   const w = $('#win-project'), to = w.getBoundingClientRect();
   if (!from?.width) return;
@@ -289,17 +295,19 @@ function rest(p, fromList) {
 }
 function openProject(i) {
   openP = i;
-  const p = P[i], im = p.images || [], n = im.length;
-  const head = `<div class="sheet-head"><h2>${esc(p.title)}</h2>${p.tagline ? `<p class="tagline">${esc(p.tagline)}</p>` : ''}<p class="meta">${meta(p)}</p></div>`;
+  if (!target) target = [rx, ry]; // hold the sphere still so cards don't drift under the cursor
+  const p = P[i], im = p.images || [];
+  const head = `<div><h2>${esc(p.title)}</h2><p class="muted">${esc(p.tagline)}</p>
+    <dl class="stats">${stat('Year', p.year)}${stat('Type', p.type)}${stat('Slot', `#${String(i + 1).padStart(2, '0')}`)}</dl></div>`;
   // Media on top: all visible at once and large (~half the screen), no scrolling; click any item to open it full size
   // in the viewer (‹ › to flip). one = single item; pair = side by side; feat = cover large left, the rest stacked beside it.
-  const big = j => n <= 2 || j === 0; // full-res where the tile is large; 480px thumbs for the stacked ones
+  const n = im.length, big = j => n <= 2 || j === 0; // full-res where the tile is large; 480px thumbs for the stacked ones
   const tile = (f, j) => `<button class="mthumb" data-v="${j}" aria-label="View ${isVid(f) ? 'video' : 'image'} ${j + 1}">`
     + `<img src="${big(j) && !isVid(f) ? src(f) : thumb(f)}" alt="">${isVid(f) ? '<i class="badge">▶</i>' : ''}</button>`;
   const grid = n === 1 ? '<div class="mgrid one">' : n === 2 ? '<div class="mgrid pair">'
     : `<div class="mgrid feat" style="--cols:${Math.ceil((n - 1) / 2)}">`;
   openWin('win-project', p.title, `
-    ${n ? `${grid}${im.map(tile).join('')}</div>` : ''}${head}
+    ${n ? `${grid}${im.map(tile).join('')}</div>${head}` : `<div class="sheet-top"><div class="portrait">${card(p, i)}</div>${head}</div>`}
     ${chips(p.tools)}${bullets(p.text)}${writeup(p)}${linkBtns(p.links)}
     <div class="viewer" hidden><button class="vx btn" aria-label="Back to project">✕</button><button class="vnav" data-step="-1" aria-label="Previous">‹</button><div class="vmedia"></div><button class="vnav" data-step="1" aria-label="Next">›</button></div>`);
 }
@@ -337,7 +345,7 @@ function table(ids, note) {
   const tw = Math.max(8, ...P.map(p => p.title.length)) + 2, yw = Math.max(5, ...P.map(p => String(p.type).length)) + 2;
   print(`<span class="tthumb blank"></span><span class="dim">#   ${pad('PROJECT', tw)}${pad('TYPE', yw)}YEAR</span>\n`
     + ids.map(i => `<span class="trow"${P[i].images?.length ? ` data-img="${thumb(P[i].images[0])}"` : ''}>${tthumb(i)}${String(i + 1).padStart(2, '0')}  ${pad(P[i].title, tw, `<a data-open="${i}">${esc(P[i].title)}</a>`)}${pad(P[i].type, yw)}${esc(P[i].year)}</span>`).join('\n')
-    + `\n<span class="dim">  ${note} · </span>${cmd('open')}<span class="dim"> &lt;n&gt; for details, or click a card on the spiral</span>`, 'pre');
+    + `\n<span class="dim">  ${note} · </span>${cmd('open')}<span class="dim"> &lt;n&gt; for details, or click a card on the sphere</span>`, 'pre');
 }
 const cmds = {
   help: () => print([['ls [filter]', 'list projects'], ['stack [skill]', 'projects by skill / tool'], ['open <n|name>', 'show one project'], ['whoami', 'summary + contact'],
@@ -454,10 +462,10 @@ tbody.addEventListener('scroll', () => { tprev.hidden = true; });
 // ---- Global input
 document.addEventListener('click', e => {
   if (e.target.matches('.viewer, .vmedia')) return closeViewer(); // click the backdrop around full-size media
-  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],#dev-btn,#spiral-btn,#about-btn,#about-close,#theme,.vx,.x');
+  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],#dev-btn,#sphere-btn,#about-btn,#about-close,#theme,.vx,.x');
   if (!t) return;
   const d = t.dataset;
-  if (t.id === 'dev-btn' || t.id === 'spiral-btn') setDev(t.id === 'dev-btn');
+  if (t.id === 'dev-btn' || t.id === 'sphere-btn') setDev(t.id === 'dev-btn');
   else if (t.id === 'about-btn') setAbout(!document.body.classList.contains('about-open'));
   else if (t.id === 'about-close') setAbout(false);
   else if (t.id === 'theme') setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
@@ -474,7 +482,7 @@ document.addEventListener('click', e => {
 function setTheme(t, save = true) {
   document.documentElement.dataset.theme = t;
   if (save) try { localStorage.theme = t; } catch {}
-  $('#theme').textContent = t === 'light' ? 'Dark mode' : 'Light mode';
+  $('#theme').textContent = t === 'light' ? '☾ Dark' : '☀ Light';
 }
 setTheme(document.documentElement.dataset.theme || 'dark', false);
 matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => { // system flips (e.g. at sunset)
@@ -483,7 +491,7 @@ matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => { //
 });
 
 // Project details and the About drawer never block the view: interacting (click, tap, drag, focus) anywhere outside
-// them closes them. Capture phase, so the list/spiral handlers that run next can turn the spiral.
+// them closes them. Capture phase, so the list/sphere handlers that run next can re-aim the sphere.
 for (const ev of ['pointerdown', 'focusin'])
   document.addEventListener(ev, e => {
     if (!e.target.closest?.('.win')) closeSheet();
@@ -494,11 +502,6 @@ addEventListener('keydown', e => {
   if (e.key === 'Escape') return closeViewer() || (openP != null ? closeSheet() : setAbout(false)); // viewer, details, then About
   const v = $('#win-project .viewer');
   if (v && !v.hidden && /^Arrow(Left|Right)$/.test(e.key)) return view(+v.dataset.i + (e.key === 'ArrowRight' ? 1 : -1));
-  // Spiral view: arrow / page keys step through the projects.
-  if (!isDev() && openP == null && /^(Arrow(Up|Down|Left|Right)|Page(Up|Down))$/.test(e.key) && !e.target.closest?.('input, textarea, #about')) {
-    e.preventDefault();
-    return aim(Math.round(goal) + (/Down|Right/.test(e.key) ? 1 : -1));
-  }
   // In Developer mode, typing anywhere goes to the terminal.
   if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && isDev() && !e.target.closest('input, textarea, button, a')) tin.focus();
 });
