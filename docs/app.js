@@ -35,7 +35,7 @@ function banner() { return site.banner ? `<pre class="banner" role="img" aria-la
 // ---- About me: each section is a native <details> dropdown; Summary starts open.
 const drop = (name, count, html, open) => `<details${open ? ' open' : ''}><summary>${esc(name)}${count ? `<span class="dim">${count}</span>` : ''}</summary>${html}</details>`;
 $('#about-body').innerHTML = `
-  ${banner() || `<h2>${esc(site.name)}</h2>`}<p class="muted">${esc(site.role)} · ${esc(site.location)}</p>
+  ${banner()}<h2 class="about-name">${esc(site.name)}</h2><p class="muted">${esc(site.role)} · ${esc(site.location)}</p>
   ${linkBtns(site.links)}
   ${drop('Summary', 0, `<p>${esc(site.summary)}</p>`, true)}
   ${resume.map(r => drop(r.name, r.items.length, r.items.map(entry).join(''))).join('')}`;
@@ -221,7 +221,7 @@ function openWin(id, title, html) {
     w.className = 'win';
     w.id = id;
     w.setAttribute('role', 'dialog');
-    w.innerHTML = '<header><b></b><button class="x" aria-label="Close">✕</button></header><div class="body"></div>';
+    w.innerHTML = '<header><b></b><button class="x btn">Close</button></header><div class="body"></div>';
     document.body.append(w);
     const h = $('header', w);
     h.onpointerdown = e => {
@@ -301,7 +301,7 @@ function openProject(i) {
   openWin('win-project', p.title, `
     ${n ? `${grid}${im.map(tile).join('')}</div>` : ''}${head}
     ${chips(p.tools)}${bullets(p.text)}${writeup(p)}${linkBtns(p.links)}
-    <div class="viewer" hidden><button class="vx btn" aria-label="Back to project">✕</button><button class="vnav" data-step="-1" aria-label="Previous">‹</button><div class="vmedia"></div><button class="vnav" data-step="1" aria-label="Next">›</button></div>`);
+    <div class="viewer" hidden><button class="vx btn" aria-label="Back to project">Close</button><button class="vnav" data-step="-1" aria-label="Previous">‹</button><div class="vmedia"></div><button class="vnav" data-step="1" aria-label="Next">›</button></div>`);
 }
 function view(j) {
   const im = P[openP].images, v = $('#win-project .viewer');

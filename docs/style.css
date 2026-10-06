@@ -96,14 +96,15 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .panel > header .btn { padding: 1px 8px; font-size: 11px }
 .panel > .body { flex: 1; min-height: 0; overflow: auto; padding: 14px 16px 16px }
 /* Spiral view (the landing page): a plain stage, a helix ribbon of project covers, the name huge and grey behind it.
-   One typeface (Inter Tight, tight tracking), neutral greys plus the one accent. Corners: buttons are pills, the popup is
-   14px, everything else (cards, media, list rows) 6px. */
+   One typeface (Inter Tight, tight tracking), neutral greys plus the one accent. Buttons are plain text; corners are 14px
+   on the popup and 6px on everything else (cards, media, list rows). */
 #spiral-panel { background: var(--sp-bg); color: var(--sp-ink); font-family: var(--display) }
-#spiral-panel > header { position: relative; z-index: 3; gap: 6px; min-height: 52px; padding: 10px clamp(16px, 2.4vw, 28px); background: none }
+#spiral-panel > header { position: relative; z-index: 3; gap: 26px; min-height: 52px; padding: 10px clamp(16px, 2.4vw, 28px); background: none }
 #spiral-panel > header b { color: var(--sp-ink); font: 500 15px var(--display); letter-spacing: -.02em; text-transform: none }
-/* Pill buttons; hover inverts them. Shared with the project popup. */
-#spiral-panel > header .btn, .win .btn, #about .btn { padding: 6px 14px; background: none; border: 1px solid var(--sp-line); border-radius: 99px; color: var(--sp-ink); font: 500 13px/1.2 var(--display); letter-spacing: -.01em; transition: background .2s, color .2s, border-color .2s }
-#spiral-panel > header .btn:hover, #spiral-panel > header .btn:focus-visible, .win .btn:hover, .win .btn:focus-visible, #about .btn:hover, #about .btn:focus-visible { background: var(--sp-ink); border-color: var(--sp-ink); color: var(--sp-bg); box-shadow: none }
+/* Buttons are plain text (no pills or outlines); hover underlines them in the accent. Shared by the header, the
+   project popup and About me. */
+#spiral-panel > header .btn, .win .btn, #about .btn { padding: 4px 0; background: none; border: 0; border-radius: 0; color: var(--sp-ink); font: 500 14px/1.2 var(--display); letter-spacing: -.01em; text-decoration: underline 1px transparent; text-underline-offset: 5px; transition: color .2s, text-decoration-color .2s }
+#spiral-panel > header .btn:hover, #spiral-panel > header .btn:focus-visible, .win .btn:hover, .win .btn:focus-visible, #about .btn:hover, #about .btn:focus-visible { border: 0; color: var(--accent); text-decoration-color: currentColor; box-shadow: none }
 .spiral-body { display: flex; flex: 1; min-height: 0 }
 #stage { position: relative; flex: 1; min-height: 0; overflow: hidden; display: grid; place-items: center; touch-action: none; user-select: none; -webkit-user-select: none }
 #stage::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 55% 50% at 0% 100%, color-mix(in srgb, var(--sp-bg) 92%, transparent) 25%, transparent 75%); pointer-events: none }
@@ -162,11 +163,12 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 /* About me: same type and palette as the Spiral view (the ASCII name stays monospace) */
 #about { background: var(--sp-bg); color: var(--sp-ink); font: 15px/1.55 var(--display) }
 .site.about-open:not(.dev) #about { border-left: 1px solid var(--sp-line) }
-#about > header { min-height: 52px; padding: 10px 12px 10px 18px; background: none }
+#about > header { gap: 22px; min-height: 52px; padding: 10px 18px; background: none }
 #about > header b { color: var(--sp-ink); font: 500 15px var(--display); letter-spacing: -.02em; text-transform: none }
 #about .banner { font-family: var(--mono) }
+#about .about-name { margin: 10px 0 2px; font: 500 clamp(40px, 4vw, 54px)/.92 var(--display); letter-spacing: -.06em; text-wrap: balance }
+.site:not(.dev) #about .banner, .site.dev #about .banner + .about-name { display: none }
 #about .muted, #about .dim { color: var(--sp-dim) }
-#about .chips span { border-color: var(--sp-line); color: var(--sp-ink); font: 500 12px var(--display) }
 #about h2 { font-size: 24px }
 #about .links { margin: 10px 0 14px }
 #about details { border-top: 1px solid var(--sp-line) }
@@ -187,8 +189,6 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .win > header b { visibility: hidden } /* the name is right below; the bar is just the drag handle + close */
 .x { padding: 0 6px; background: none; border: 0; color: var(--muted); font-size: 15px }
 .x:hover { color: var(--accent) }
-.win .x, #about .x { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid var(--sp-line); border-radius: 50%; color: var(--sp-ink); font-size: 12px; transition: background .2s, color .2s }
-.win .x:hover, .win .x:focus-visible, #about .x:hover, #about .x:focus-visible { background: var(--sp-ink); color: var(--sp-bg); outline: none }
 .win .body { flex: 1; min-height: 0; overflow: auto; padding: 0 22px 28px; color: color-mix(in srgb, var(--sp-ink) 80%, transparent) }
 .win .body > :not(.mgrid, .viewer, .sheet-head) { max-width: 72ch }
 /* Media: all of a project's images visible at once and big (about half the screen tall), no scrolling. */
@@ -215,12 +215,14 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .win h2 { margin: 0; color: var(--sp-ink); font: 500 clamp(36px, 5.4vw, 72px)/.92 var(--display); letter-spacing: -.06em }
 .sheet-head .tagline { max-width: 52ch; margin: 14px 0 0; color: var(--sp-ink); font: 400 clamp(18px, 1.8vw, 22px)/1.3 var(--display); letter-spacing: -.015em }
 .sheet-head .meta { margin: 8px 0 0; color: var(--sp-dim); font-size: 14px }
-.win .chips { gap: 6px; margin: 4px 0 14px }
-.win .chips span { padding: 3px 11px; border-color: var(--sp-line); color: var(--sp-ink); font: 500 12px var(--display) }
+.win .chips { margin: 4px 0 14px }
+.win .chips span, #about .chips span { padding: 0; border: 0; border-radius: 0; color: var(--sp-ink); font: 500 14px var(--display) }
+.win .chips span:not(:last-child)::after, #about .chips span:not(:last-child)::after { content: "/"; margin: 0 .55em; color: var(--sp-dim) }
+.win .chips, #about .chips { gap: 2px 0 }
 .win h3 { margin: 30px 0 6px; padding: 0; border: 0; color: var(--sp-ink); font: 500 20px/1.2 var(--display); letter-spacing: -.02em; text-transform: none }
 .win .links { margin-top: 24px }
+.win .links, #about .links { gap: 6px 24px }
 .chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 }
-.chips span { padding: 1px 9px; border: 1px solid color-mix(in srgb, var(--accent2) 35%, transparent); border-radius: 99px; color: color-mix(in srgb, var(--accent2) 70%, var(--text)); font-size: 12px }
 .body p { margin: 8px 0 }
 .body ul { margin: 8px 0; padding-left: 18px }
 .body li { margin: 5px 0 }
@@ -275,7 +277,8 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
   .pl small { font-size: 9px }
   #term { height: 75vh }
   #spiral-panel > header { min-height: 46px; padding: 8px 12px }
-  #spiral-panel > header .btn { padding: 5px 11px; font-size: 12px }
+  #spiral-panel > header { gap: 18px }
+  #spiral-panel > header .btn { font-size: 13px }
   .words span { font-size: 19vw }
   #focus { max-width: 70% }
   #focus span { display: none }
