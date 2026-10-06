@@ -138,9 +138,7 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 @media (min-width: 801px) { #spiral { left: 11vw } #stage { perspective-origin: calc(50% + 11vw) 50% } }
 /* Counter on the scroll arrow, as on A24: the project in front, a thin arrow, then how many there are. */
 #count { position: absolute; right: clamp(18px, 2.8vw, 36px); bottom: clamp(18px, 3.4vh, 34px); display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--sp-ink); font: 400 15px/1 var(--display); font-variant-numeric: tabular-nums; pointer-events: none }
-#count i { position: relative; width: 20px; height: 68px }
-#count i::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 1px; width: 1.5px; translate: -50% 0; background: var(--sp-ink) }
-#count i::after { content: ""; position: absolute; left: 50%; bottom: 2px; width: 13px; height: 13px; border: solid var(--sp-ink); border-width: 0 1.5px 1.5px 0; transform: translateX(-50%) rotate(45deg); transform-origin: 50% 50% }
+#count svg { display: block; width: 22px; height: 88px; overflow: visible }
 /* Cards: the cover image/video fills the card; projects without one get a typographic card. */
 .tile { position: absolute; left: 0; top: 0; width: var(--w); height: var(--h); margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2); padding: 0; overflow: hidden; background: var(--sp-card); border: 0; border-radius: 6px; color: var(--sp-ink); cursor: pointer }
 .tile > img, .tile > video { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; transition: filter .3s }
@@ -278,7 +276,7 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
   .words span { font-size: 19vw }
   #titles { right: 44px }
   #titles button { font-size: 9vw }
-  #count i { height: 48px }
+  #count svg { width: 16px; height: 64px }
   .win { border-radius: 10px }
   .win > header { padding-left: 16px }
   .win .body { padding: 0 16px 22px }
