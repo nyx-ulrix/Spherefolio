@@ -44,7 +44,8 @@ $('#about-body').innerHTML = `
 // keys, or tabbing through the cards) and it settles with one card in front: the focused project.
 const STEP = 40; // degrees between neighbouring cards: 9 per turn
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches, D = Math.PI / 180;
-let cards = [], RISE = 1, pos = 0, goal = 0, drawn = null, dir = 1, settle;
+// On launch it starts six cards back (wound away and below) and turns into place, slower than a normal step.
+let cards = [], RISE = 1, pos = still ? 0 : -6, goal = 0, drawn = null, dir = 1, settle;
 let arrowMax = 96; // longest the scroll arrow gets (at the first project)
 const titleBox = $('#titles'), titleList = $('#titles ol'), countNow = $('#count-now'), arrow = $('#arrow'), w1 = $('#w1'), w2 = $('#w2');
 const [first, ...more] = site.name.toUpperCase().split(/\s+/); // the name, huge and grey behind the spiral
@@ -84,10 +85,10 @@ function draw() {
     const live = !still && Math.abs(d) < .6; // only the front card's video plays (and downloads)
     if (c.video && c.live !== live) (c.live = live) ? c.video.play().catch(() => {}) : c.video.pause();
   });
-  const t = pos / Math.max(1, P.length - 1);
+  const t = Math.max(0, pos) / Math.max(1, P.length - 1);
   w1.style.transform = `translateX(${-t * 14}vw)`; // the name drifts apart as you scroll through
   w2.style.transform = `translateX(${t * 14}vw)`;
-  const n = String(Math.round(pos) + 1); // the counter under the arrow
+  const n = String(Math.max(0, Math.round(pos)) + 1); // the counter under the arrow
   if (countNow.textContent !== n) countNow.textContent = n;
   // The arrow shortens as you near the last project: how much further there is to go. The head stays the same size;
   // over the last stretch the line also pulls out of the head, so at the end only the head is left.
@@ -129,7 +130,7 @@ function tick(now) {
   const dt = Math.min(now - last, 50) / 16.7;
   last = now;
   if (!isDev() && cards.length) { // hidden in Developer mode: skip the work
-    pos += (goal - pos) * (still ? 1 : Math.min(1, .1 * dt));
+    pos += (goal - pos) * (still ? 1 : Math.min(1, (pos < 0 ? .035 : .1) * dt)); // pos < 0: still entering
     if (Math.abs(goal - pos) < 1e-3) pos = goal;
     if (pos !== drawn) draw();
   }
@@ -168,11 +169,17 @@ spiral.addEventListener('focusin', e => { const t = e.target.closest('.tile'); i
 // straight to it). In the Spiral view, About me opens as a drawer from the right.
 const isDev = () => document.body.classList.contains('dev');
 const setAbout = on => document.body.classList.toggle('about-open', on);
+// The visitor's view and each view's light/dark choice are remembered in this browser (localStorage).
+const store = (k, v) => { try { localStorage[k] = v; } catch {} };
+const stored = k => { try { return localStorage[k]; } catch {} };
 function setDev(on) {
   document.body.classList.toggle('dev', on);
   setAbout(false);
   closeSheet();
   history.replaceState(null, '', on ? '#dev' : location.pathname + location.search);
+  const view = on ? 'dev' : 'spiral';
+  store('view', view);
+  setTheme(stored(`theme-${view}`) || (on ? 'dark' : 'light'), false); // the Spiral view starts light, Developer mode dark
 }
 // Every few seconds the Developer mode button glitches: its letters scramble and it flickers into a sliced, shifted,
 // monospace version of itself for a moment (not for visitors who prefer reduced motion).
@@ -460,17 +467,13 @@ document.addEventListener('click', e => {
   else closeSheet();
 });
 
-// Light / dark: follows the system until the visitor picks one (index.html sets it before first paint).
+// Light / dark, chosen per view (index.html sets it before first paint).
 function setTheme(t, save = true) {
   document.documentElement.dataset.theme = t;
-  if (save) try { localStorage.theme = t; } catch {}
+  if (save) store(`theme-${isDev() ? 'dev' : 'spiral'}`, t);
   $('#theme').textContent = t === 'light' ? 'Dark mode' : 'Light mode';
 }
-setTheme(document.documentElement.dataset.theme || 'dark', false);
-matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => { // system flips (e.g. at sunset)
-  let saved; try { saved = localStorage.theme; } catch {}
-  if (!saved) setTheme(e.matches ? 'light' : 'dark', false);
-});
+setTheme(document.documentElement.dataset.theme || 'light', false);
 // Where the browser exposes a light sensor (few do: Chrome with its Generic Sensor flag), the room's brightness picks
 // the theme and the toggles hide. The gap between the two thresholds stops it flickering at dusk.
 if ('AmbientLightSensor' in window) try {
@@ -506,5 +509,5 @@ addEventListener('keydown', e => {
   if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && isDev() && !e.target.closest('input, textarea, button, a')) tin.focus();
 });
 
-if (location.hash === '#dev') setDev(true);
+if (isDev() || location.hash === '#dev') setDev(true); // index.html already opened the remembered view
 addEventListener('hashchange', () => setDev(location.hash === '#dev'));
