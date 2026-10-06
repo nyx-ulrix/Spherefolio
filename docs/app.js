@@ -45,11 +45,12 @@ $('#about-body').innerHTML = `
 const STEP = 40; // degrees between neighbouring cards: 9 per turn
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches, D = Math.PI / 180;
 let cards = [], RISE = 1, pos = 0, goal = 0, drawn = null, dir = 1, settle;
-const titleBox = $('#titles'), titleList = $('#titles ol'), intro = $('#intro'), w1 = $('#w1'), w2 = $('#w2');
+const titleBox = $('#titles'), titleList = $('#titles ol'), countNow = $('#count-now'), w1 = $('#w1'), w2 = $('#w2');
 const [first, ...more] = site.name.toUpperCase().split(/\s+/); // the name, huge and grey behind the spiral
 w1.textContent = first;
 w2.textContent = more.join(' ');
 $('#mini').textContent = site.role;
+$('#count-all').textContent = P.length;
 const clampGoal = g => Math.max(0, Math.min(P.length - 1, g));
 function build() { // cards are placed once; each frame only moves the wrapper
   const w = stage.clientWidth, h = stage.clientHeight;
@@ -84,7 +85,8 @@ function draw() {
   const t = pos / Math.max(1, P.length - 1);
   w1.style.transform = `translateX(${-t * 14}vw)`; // the name drifts apart as you scroll through
   w2.style.transform = `translateX(${t * 14}vw)`;
-  intro.style.opacity = Math.max(0, 1 - pos * 2).toFixed(2);
+  const n = String(Math.round(pos) + 1); // the counter under the arrow
+  if (countNow.textContent !== n) countNow.textContent = n;
   placeTitles();
 }
 // Project names, A24-style: the one in front large in the middle, the ones before and after it above and below,
@@ -431,13 +433,13 @@ tbody.addEventListener('scroll', () => { tprev.hidden = true; });
 // ---- Global input
 document.addEventListener('click', e => {
   if (e.target.matches('.viewer, .vmedia')) return closeViewer(); // click the backdrop around full-size media
-  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],#dev-btn,#spiral-btn,#about-btn,#about-close,#theme,.vx,.x');
+  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],#dev-btn,#spiral-btn,#about-btn,#about-close,#theme,#theme-icon,.vx,.x');
   if (!t) return;
   const d = t.dataset;
   if (t.id === 'dev-btn' || t.id === 'spiral-btn') setDev(t.id === 'dev-btn');
   else if (t.id === 'about-btn') setAbout(!document.body.classList.contains('about-open'));
   else if (t.id === 'about-close') setAbout(false);
-  else if (t.id === 'theme') setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+  else if (t.id === 'theme' || t.id === 'theme-icon') setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
   else if (d.sheet) launch(+d.sheet);
   else if (d.open) typeRun(`open ${+d.open + 1}`);
   else if (d.cmd) typeRun(d.cmd);
@@ -458,6 +460,19 @@ matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => { //
   let saved; try { saved = localStorage.theme; } catch {}
   if (!saved) setTheme(e.matches ? 'light' : 'dark', false);
 });
+// Where the browser exposes a light sensor (few do: Chrome with its Generic Sensor flag), the room's brightness picks
+// the theme and the toggles hide. The gap between the two thresholds stops it flickering at dusk.
+if ('AmbientLightSensor' in window) try {
+  const sensor = new AmbientLightSensor({ frequency: 1 });
+  sensor.addEventListener('reading', () => {
+    document.body.classList.add('light-sensor');
+    const t = document.documentElement.dataset.theme, lux = sensor.illuminance;
+    if (t !== 'light' && lux > 80) setTheme('light', false);
+    else if (t !== 'dark' && lux < 25) setTheme('dark', false);
+  });
+  sensor.addEventListener('error', () => document.body.classList.remove('light-sensor')); // e.g. permission denied
+  sensor.start();
+} catch {}
 
 // Project details and the About drawer never block the view: interacting (click, tap, drag, focus) anywhere outside
 // them closes them. Capture phase, so the spiral handlers that run next can turn it.
