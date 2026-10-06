@@ -74,11 +74,16 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .btn:hover:not(:disabled), .btn:focus-visible { border-color: var(--accent); box-shadow: 0 0 8px var(--glow); outline: none }
 .btn.danger:hover:not(:disabled) { border-color: #e0413a; box-shadow: 0 0 8px #e0413a88 }
 
-/* Layout: sphere top-left (~30% of the screen, click → fullscreen), terminal below it, About me down the whole right side. */
-.site { display: grid; grid-template: "sphere about" minmax(0, 43fr) "term about" minmax(0, 57fr) / minmax(0, 1fr) minmax(340px, 30%); gap: 10px; height: 100dvh; padding: 10px }
+/* Layout: the sphere on its own by default; Developer mode (.dev) = the terminal with About me down the right.
+   In sphere mode, About me opens as a drawer over the sphere (.about-open). */
+.site { display: grid; grid-template: "sphere" minmax(0, 1fr) / minmax(0, 1fr); gap: 10px; height: 100dvh; padding: 10px }
+.site.dev { grid-template: "term about" minmax(0, 1fr) / minmax(0, 1fr) minmax(340px, 30%) }
 #sphere-panel { grid-area: sphere }
 #about { grid-area: about }
 #term { grid-area: term }
+.site:not(.dev) :is(#term, #about), .site.dev #sphere-panel, .site.dev #about-close { display: none }
+.site.about-open:not(.dev) #about { display: flex; position: fixed; top: 10px; right: 10px; bottom: 10px; z-index: 18; width: min(440px, calc(100vw - 20px)); animation: drawer .25s ease }
+@keyframes drawer { from { opacity: 0; transform: translateX(30px) } }
 .panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 30px var(--shadow) }
 .panel > header, .win > header { display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 6px 8px 6px 12px; background: var(--head); border-bottom: 1px solid var(--line); user-select: none }
 .panel > header b, .win > header b { flex: 1; overflow: hidden; color: var(--accent2); font-size: 13px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis }
@@ -131,8 +136,6 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .tile.launched { visibility: hidden } /* its popup is open: the card has "left" the sphere */
 .pl.no-img { grid-template-columns: 1fr; padding: 9px 8px }
 .pl.no-img b { font-size: 16px }
-.full #sphere-panel { position: fixed; inset: 0; z-index: 15; height: auto; background: var(--bg); border: 0; border-radius: 0 }
-body:not(.full) #stage { cursor: zoom-in }
 
 /* ASCII name banner (109 columns) scales with its panel via container units so it always fits on one line;
    in the terminal it shares the line with the spinning donut. */
@@ -229,9 +232,9 @@ body:not(.full) #stage { cursor: zoom-in }
 .sg:hover, .sg:focus-visible { border-color: var(--accent); color: var(--text); outline: none }
 
 @media (max-width: 800px) {
-  .site { display: flex; flex-direction: column; height: auto; min-height: 100dvh; overflow: auto }
-  .site .panel { flex: none }
-  #sphere-panel { height: 58vh }
+  .site.dev { display: flex; flex-direction: column; height: auto; min-height: 100dvh; overflow: auto }
+  .site.dev .panel { flex: none }
+  #status { display: none }
   #projects { flex-basis: 48%; padding: 4px }
   .pl { grid-template-columns: 44px 1fr; gap: 7px; padding: 5px }
   .pl .mini { height: 33px }
@@ -239,7 +242,6 @@ body:not(.full) #stage { cursor: zoom-in }
   .pl.no-img b { font-size: 14px }
   .pl small { font-size: 9px }
   #term { height: 75vh }
-  #stage { touch-action: pan-y }
   .sheet-top { grid-template-columns: 1fr }
   #term .body { font-size: 13px }
   .sg-row > span { flex-basis: 100% }

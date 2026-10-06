@@ -15,7 +15,7 @@
 </head>
 <body class="site">
 <section id="sphere-panel" class="panel" aria-label="Projects sphere">
-  <header><b id="caption">Projects · click to expand</b><span id="status" class="dim"></span><button class="btn" id="full">⤢ Fullscreen</button></header>
+  <header><b id="caption">Projects · drag to spin, click a card</b><span id="status" class="dim"></span><button class="btn" id="about-btn" aria-label="About me">☺ About me</button><button class="btn" id="dev-btn" aria-label="Developer mode: terminal view">⌨ Developer mode</button></header>
   <div class="sphere-body">
     <main id="stage"><div id="sphere"></div><span class="drag-hint" aria-hidden="true">⟲ Drag to move</span></main>
     <ol id="projects" aria-label="Projects"></ol>
@@ -23,12 +23,12 @@
 </section>
 
 <section id="about" class="panel" aria-label="About me">
-  <header><b>About me</b><button class="btn" id="theme" aria-label="Switch light or dark theme">☀ Light</button></header>
+  <header><b>About me</b><button class="btn" id="theme" aria-label="Switch light or dark theme">☀ Light</button><button class="x" id="about-close" aria-label="Close About me">✕</button></header>
   <div class="body" id="about-body"></div>
 </section>
 
 <section id="term" class="panel" aria-label="Terminal">
-  <header><b>Terminal · visitor@sphere</b><span class="dim">type help</span></header>
+  <header><b>Terminal · visitor@sphere</b><span class="dim">type help</span><button class="btn" id="sphere-btn" aria-label="Back to the sphere">◎ Sphere mode</button></header>
   <div class="body">
     <div id="term-out" aria-live="polite"></div>
     <form id="term-form"><label for="term-in" class="hl">visitor@sphere:~$</label><input id="term-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="click for suggestions"></form>

@@ -106,6 +106,7 @@ let last = performance.now(), frames = 0, fpsAt = last;
 function tick(now) {
   const dt = Math.min(now - last, 50) / 16.7;
   last = now;
+  if (isDev()) return requestAnimationFrame(tick); // sphere hidden in Developer mode: skip the work
   if (drag) { vx *= .7; vy *= .7; } // holding still before release shouldn't fling
   else if (target) { // ease toward the project picked in the list (shortest way round)
     vx = vy = 0;
@@ -142,19 +143,21 @@ addEventListener('pointermove', e => {
   rx += vx = -dy * .25;
 });
 for (const ev of ['pointerup', 'pointercancel']) addEventListener(ev, () => { drag = null; });
-// The corner sphere is a preview: a click expands it to fullscreen, where clicking a card opens the project.
-const isFull = () => document.body.classList.contains('full');
-const hint = () => isFull() ? 'Projects · drag to spin, click a card' : 'Projects · click to expand';
-const setFull = on => {
-  document.body.classList.toggle('full', on);
-  $('#full').textContent = on ? '✕ Close' : '⤢ Fullscreen';
-  caption.textContent = hint();
-};
+// Two modes: the sphere on its own (default), or Developer mode = the terminal with About me beside it (#dev links
+// straight to it). In sphere mode, About me opens as a drawer from the right.
+const hint = () => 'Projects · drag to spin, click a card';
+const isDev = () => document.body.classList.contains('dev');
+const setAbout = on => document.body.classList.toggle('about-open', on);
+function setDev(on) {
+  document.body.classList.toggle('dev', on);
+  setAbout(false);
+  closeSheet();
+  history.replaceState(null, '', on ? '#dev' : location.pathname + location.search);
+}
 stage.addEventListener('click', e => {
   if (e.detail && moved > 6) return; // that was a drag (e.detail 0 = keyboard click)
   const t = e.target.closest('.tile');
-  if (t && (isFull() || !e.detail)) launch(+t.dataset.p);
-  else if (!isFull()) setFull(true);
+  if (t) launch(+t.dataset.p);
 });
 sphere.addEventListener('pointerover', e => {
   const t = e.target.closest('.tile'), p = t && P[t.dataset.p];
@@ -220,7 +223,11 @@ stage.addEventListener('wheel', e => {
 new ResizeObserver(() => {
   if (!scrolledAt) plist.scrollTop = parseFloat(getComputedStyle(plist, '::before').height) || 0;
 }).observe(plist);
-new ResizeObserver(() => { build(); if (aimed != null) aim(aimed); }).observe(stage); // also does the first build; rebuilds keep the highlight
+new ResizeObserver(() => { // also does the first build; rebuilds keep the highlight
+  if (!stage.clientWidth) return; // hidden in Developer mode: rebuild when it's shown again
+  build();
+  if (aimed != null) aim(aimed);
+}).observe(stage);
 requestAnimationFrame(tick);
 
 // ---- Project sheets: draggable Foundry-style windows, Esc closes the top one.
@@ -476,10 +483,12 @@ tbody.addEventListener('scroll', () => { tprev.hidden = true; });
 // ---- Global input
 document.addEventListener('click', e => {
   if (e.target.matches('.viewer, .vmedia')) return closeViewer(); // click the backdrop around full-size media
-  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],#full,#theme,.vx,.x');
+  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],#dev-btn,#sphere-btn,#about-btn,#about-close,#theme,.vx,.x');
   if (!t) return;
   const d = t.dataset;
-  if (t.id === 'full') setFull(!isFull());
+  if (t.id === 'dev-btn' || t.id === 'sphere-btn') setDev(t.id === 'dev-btn');
+  else if (t.id === 'about-btn') setAbout(!document.body.classList.contains('about-open'));
+  else if (t.id === 'about-close') setAbout(false);
   else if (t.id === 'theme') setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
   else if (d.sheet) launch(+d.sheet);
   else if (d.open) typeRun(`open ${+d.open + 1}`);
@@ -502,15 +511,21 @@ matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => { //
   if (!saved) setTheme(e.matches ? 'light' : 'dark', false);
 });
 
-// Project details never block the view: interacting (click, tap, drag, focus) anywhere outside them closes them.
-// Capture phase, so the list/sphere handlers that run next can re-aim the sphere.
+// Project details and the About drawer never block the view: interacting (click, tap, drag, focus) anywhere outside
+// them closes them. Capture phase, so the list/sphere handlers that run next can re-aim the sphere.
 for (const ev of ['pointerdown', 'focusin'])
-  document.addEventListener(ev, e => { if (!e.target.closest?.('.win')) closeSheet(); }, true);
+  document.addEventListener(ev, e => {
+    if (!e.target.closest?.('.win')) closeSheet();
+    if (!e.target.closest?.('#about, #about-btn')) setAbout(false);
+  }, true);
 
 addEventListener('keydown', e => {
-  if (e.key === 'Escape') return closeViewer() || (openP != null ? closeSheet() : setFull(false)); // viewer, then details, then fullscreen
+  if (e.key === 'Escape') return closeViewer() || (openP != null ? closeSheet() : setAbout(false)); // viewer, details, then About
   const v = $('#win-project .viewer');
   if (v && !v.hidden && /^Arrow(Left|Right)$/.test(e.key)) return view(+v.dataset.i + (e.key === 'ArrowRight' ? 1 : -1));
-  // Typing anywhere goes to the terminal (unless the sphere is covering it).
-  if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && !isFull() && !e.target.closest('input, textarea, button, a')) tin.focus();
+  // In Developer mode, typing anywhere goes to the terminal.
+  if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && isDev() && !e.target.closest('input, textarea, button, a')) tin.focus();
 });
+
+if (location.hash === '#dev') setDev(true);
+addEventListener('hashchange', () => setDev(location.hash === '#dev'));
