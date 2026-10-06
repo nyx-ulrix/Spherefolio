@@ -44,7 +44,7 @@ $('#about-body').innerHTML = `
 // keys, or tabbing through the cards) and it settles with one card in front: the focused project.
 const STEP = 40; // degrees between neighbouring cards: 9 per turn
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches, D = Math.PI / 180;
-let cards = [], RISE = 1, pos = 0, goal = 0, drawn = null, focused = -1, dir = 1, settle;
+let cards = [], RISE = 1, pos = 0, goal = 0, drawn = null, dir = 1, settle;
 const titleBox = $('#titles'), titleList = $('#titles ol'), intro = $('#intro'), w1 = $('#w1'), w2 = $('#w2');
 const [first, ...more] = site.name.toUpperCase().split(/\s+/); // the name, huge and grey behind the spiral
 w1.textContent = first;
@@ -68,8 +68,7 @@ function build() { // cards are placed once; each frame only moves the wrapper
     spiral.append(el);
     return { el, video: el.querySelector('video'), live: false, back: null };
   });
-  drawn = null;
-  focused = -1;
+  measureTitles();
 }
 function draw() {
   drawn = pos;
@@ -86,26 +85,32 @@ function draw() {
   w1.style.transform = `translateX(${-t * 14}vw)`; // the name drifts apart as you scroll through
   w2.style.transform = `translateX(${t * 14}vw)`;
   intro.style.opacity = Math.max(0, 1 - pos * 2).toFixed(2);
-  setFocus(Math.round(pos));
+  placeTitles();
 }
-function setFocus(i) { // the card in front: its name is greyed in the title list
-  if (i === focused || !P[i]) return;
-  focused = i;
-  showTitles(i);
-}
-// Project names, A24-style: huge stacked titles bottom left with the year beside each, five at a time (the five that
-// include the project in front). Hover a name to turn the spiral to it; click to open it.
+// Project names, A24-style: the one in front large in the middle, the ones before and after it above and below,
+// smaller and darker, all sliding and fading with the spiral as it turns. Click a name to open it.
 titleList.innerHTML = P.map((p, i) => `<li><button data-sheet="${i}">${esc(p.title)}${p.year ? `<sup>${esc(p.year)}</sup>` : ''}</button></li>`).join('');
 const titleItems = [...titleList.children];
-function showTitles(i) {
-  const start = i - i % 5, top = titleItems[start].offsetTop, last = titleItems[Math.min(start + 5, P.length) - 1];
-  titleItems.forEach((li, j) => li.classList.toggle('on', j === i));
-  titleList.style.transform = `translateY(${-top}px)`;
-  titleBox.style.height = `${last.offsetTop + last.offsetHeight - top}px`;
+let gap = 0, fits = [];
+function measureTitles() { // row spacing, and how far each long name shrinks to fit the width (on resize / font load)
+  const lh = titleItems[0]?.offsetHeight || 0;
+  gap = lh * .8;
+  titleBox.style.height = `${lh * 2.3}px`;
+  fits = titleItems.map(li => Math.min(1, titleBox.clientWidth / li.firstChild.offsetWidth));
+  drawn = null; // re-place everything on the next frame
 }
-titleList.addEventListener('pointerover', e => { const b = e.target.closest('[data-sheet]'); if (b) { aim(+b.dataset.sheet); rest(+b.dataset.sheet); } });
+function placeTitles() {
+  titleItems.forEach((li, j) => {
+    const r = j - pos, a = Math.abs(r), show = a < 2; // r: rows from the middle
+    li.style.visibility = show ? '' : 'hidden';
+    if (!show) return;
+    li.style.transform = `translateY(${(r * gap).toFixed(1)}px) scale(${((1 - .45 * Math.min(a, 1)) * fits[j]).toFixed(3)})`;
+    li.style.opacity = (a <= 1 ? 1 - .65 * a : .35 * (2 - a)).toFixed(3);
+  });
+}
+titleList.addEventListener('pointerover', e => { const b = e.target.closest('[data-sheet]'); if (b) rest(+b.dataset.sheet); });
 titleList.addEventListener('focusin', e => { const b = e.target.closest('[data-sheet]'); if (b) aim(+b.dataset.sheet); });
-document.fonts?.ready.then(() => { if (focused >= 0) showTitles(focused); }); // the web font changes the line heights
+document.fonts?.ready.then(measureTitles); // the web font changes the sizes
 let last = performance.now();
 function tick(now) {
   const dt = Math.min(now - last, 50) / 16.7;
