@@ -41,33 +41,6 @@ document.documentElement.style.setProperty('--pink', site.accent2 || '#f9a8ce');
 // The name as ASCII art (site.banner) wherever the name is shown; falls back to plain text when there's none.
 function banner() { return site.banner ? `<pre class="banner" role="img" aria-label="${esc(site.name)}">${esc(site.banner)}</pre>` : ''; }
 
-// Spinning ASCII donut (a1k0n's donut.c): a z-buffered torus shaded with .,-~:;=!*#$@
-function donutFrame(A, B, W = 34, H = 17) {
-  const px = Array(W * H).fill(' '), zb = Array(W * H).fill(0), cA = Math.cos(A), sA = Math.sin(A), cB = Math.cos(B), sB = Math.sin(B);
-  for (let j = 0; j < 6.28; j += .07) {
-    const ct = Math.cos(j), st = Math.sin(j);
-    for (let i = 0; i < 6.28; i += .02) {
-      const sp = Math.sin(i), cp = Math.cos(i), h = ct + 2, D = 1 / (sp * h * sA + st * cA + 5), t = sp * h * cA - st * sA;
-      const x = 0 | (W / 2 + W * .68 * D * (cp * h * cB - t * sB)), y = 0 | (H / 2 + W * .34 * D * (cp * h * sB + t * cB)), o = x + W * y;
-      const N = 0 | (8 * ((st * sA - sp * ct * cA) * cB - sp * ct * sA - st * cA - cp * ct * sB));
-      if (y >= 0 && y < H && x >= 0 && x < W && D > zb[o]) { zb[o] = D; px[o] = '.,-~:;=!*#$@'[N > 0 ? N : 0]; }
-    }
-  }
-  return Array.from({ length: H }, (_, r) => px.slice(r * W, r * W + W).join('')).join('\n');
-}
-function spinDonut(el) { // ~20 fps, only while on screen; one still frame for reduced motion
-  el.textContent = donutFrame(1, 1); // draw straight away, never blank
-  if (still) return;
-  let last = 0, seen = true;
-  new IntersectionObserver(([e]) => { seen = e.isIntersecting; }).observe(el);
-  const step = now => {
-    if (!el.isConnected) return; // `clear` removed it
-    if (seen && now - last > 50) { last = now; el.textContent = donutFrame(now / 900, now / 1800); }
-    requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
-}
-
 // ---- About me: each section is a native <details> dropdown; Summary starts open.
 const drop = (name, count, html, open) => `<details${open ? ' open' : ''}><summary>${esc(name)}${count ? `<span class="dim">${count}</span>` : ''}</summary>${html}</details>`;
 $('#about-body').innerHTML = `
@@ -203,14 +176,23 @@ plist.addEventListener('scroll', () => {
   if (performance.now() > userScrollUntil) return;
   userScrollUntil = Math.max(userScrollUntil, performance.now() + 300); // momentum scrolling keeps counting
   scrolledAt = performance.now();
-  const box = plist.getBoundingClientRect(), mid = box.top + box.height / 2;
+  const box = plist.getBoundingClientRect(), top = box.top + parseFloat(getComputedStyle(plist).paddingTop);
   let best = null, bestD = Infinity;
   for (const b of plist.querySelectorAll('.pl')) {
-    const r = b.getBoundingClientRect(), d = Math.abs(r.top + r.height / 2 - mid);
+    const r = b.getBoundingClientRect();
+    const d = Math.abs(phone() ? r.top - top : r.top + r.height / 2 - (box.top + box.height / 2)); // phones: top entry
     if (d < bestD) { bestD = d; best = b; }
   }
   setMid(best);
 }, { passive: true });
+// Phones show the list under the sphere, and the focused entry sits at its top instead of the middle.
+const phone = () => matchMedia('(max-width: 800px)').matches;
+function reveal(i) { // focus a project's entry; on phones scroll it to the top of the list
+  const b = plist.querySelector(`[data-sheet="${i}"]`);
+  if (!b) return;
+  setMid(b);
+  if (phone()) plist.scrollBy({ top: b.getBoundingClientRect().top - plist.getBoundingClientRect().top - parseFloat(getComputedStyle(plist).paddingTop), behavior: 'smooth' });
+}
 stage.addEventListener('wheel', e => {
   e.preventDefault();
   if (performance.now() - wheelAt < 140) return; // trackpads fire many small events: one step at a time
@@ -286,7 +268,7 @@ let launches = 0;
 async function launch(i) {
   if (still) return openProject(i);
   const token = ++launches;
-  aim(i);
+  reveal(i); // highlights it in the list and spins its card to the front
   const t0 = performance.now();
   await new Promise(done => {
     const wait = () => {
@@ -431,16 +413,13 @@ function run(line) {
   const [c, ...a] = line.split(/\s+/), name = c.toLowerCase();
   Object.hasOwn(cmds, name) ? cmds[name](a.join(' ')) : print(`command not found: ${esc(c)} · type ${cmd('help')}`);
 }
-// Boot splash: the ASCII name with a spinning donut beside it (or the plain name), then the hints.
-[`<span class="dim">SPHEREFOLIO OS v1.0.3 · link established · latency 1ms · ${P.length} projects · ${resume.length} dossiers</span>`,
-  site.banner ? ['splash', `${banner()}<pre class="donut" aria-hidden="true"></pre>`] : `<b class="hl">${esc(site.name)}</b>`,
+// Boot: the ASCII name (or the plain name) and the hints, then it types `ls` itself so every project is listed.
+const bootLines = [`<span class="dim">SPHEREFOLIO OS v1.0.3 · link established · latency 1ms · ${P.length} projects · ${resume.length} dossiers</span>`,
+  banner() || `<b class="hl">${esc(site.name)}</b>`,
   esc(site.role),
-  `type ${cmd('help')} or try ${cmd('ls')} ${cmd('stack')} ${cmd('whoami')} ${resume.slice(0, 2).map(r => cmd(key(r.name))).join(' ')} · click the prompt for suggestions`, '',
-].forEach((l, i) => setTimeout(() => {
-  if (!Array.isArray(l)) return print(l);
-  print(l[1], l[0]);
-  spinDonut(out.lastElementChild.querySelector('.donut'));
-}, i * 110));
+  `type ${cmd('help')} or try ${cmd('ls')} ${cmd('stack')} ${cmd('whoami')} ${resume.slice(0, 2).map(r => cmd(key(r.name))).join(' ')} · click the prompt for suggestions`, ''];
+bootLines.forEach((l, i) => setTimeout(() => print(l), i * 110));
+setTimeout(() => typeRun('ls'), bootLines.length * 110 + 250);
 $('#term-form').onsubmit = e => { e.preventDefault(); run(tin.value); tin.value = ''; };
 tin.onkeydown = e => {
   const first = !sug.hidden && sug.querySelector('[data-cmd]');

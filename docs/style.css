@@ -76,17 +76,18 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 
 /* Layout: the sphere on its own by default; Developer mode (.dev) = the terminal with About me down the right.
    In sphere mode, About me opens as a drawer over the sphere (.about-open). */
-.site { display: grid; grid-template: "sphere" minmax(0, 1fr) / minmax(0, 1fr); gap: 10px; height: 100dvh; padding: 10px }
+.site { display: grid; grid-template: "sphere" minmax(0, 1fr) / minmax(0, 1fr); gap: 0; height: 100dvh; padding: 0 }
 .site.dev { grid-template: "term about" minmax(0, 1fr) / minmax(0, 1fr) minmax(340px, 30%) }
 #sphere-panel { grid-area: sphere }
 #about { grid-area: about }
 #term { grid-area: term }
 .site:not(.dev) :is(#term, #about), .site.dev #sphere-panel, .site.dev #about-close { display: none }
-.site.about-open:not(.dev) #about { display: flex; position: fixed; top: 10px; right: 10px; bottom: 10px; z-index: 18; width: min(440px, calc(100vw - 20px)); animation: drawer .25s ease }
+.site.about-open:not(.dev) #about { display: flex; position: fixed; top: 0; right: 0; bottom: 0; z-index: 18; width: min(440px, 100vw); box-shadow: -12px 0 40px var(--shadow); animation: drawer .25s ease }
 @keyframes drawer { from { opacity: 0; transform: translateX(30px) } }
-.panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 30px var(--shadow) }
+.panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: var(--panel) }
 .panel > header, .win > header { display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 6px 8px 6px 12px; background: var(--head); border-bottom: 1px solid var(--line); user-select: none }
 .panel > header b, .win > header b { flex: 1; overflow: hidden; color: var(--accent2); font-size: 13px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis }
+.panel > header { border-bottom: 0 } /* seamless: no borders between or around the panels */
 .panel > header .btn { padding: 1px 8px; font-size: 11px }
 .panel > .body { flex: 1; min-height: 0; overflow: auto; padding: 14px 16px 16px }
 #status { font: 11px var(--mono); letter-spacing: .06em; white-space: nowrap }
@@ -123,7 +124,7 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .tile .media > * { pointer-events: none }
 .mini { display: block; width: 100%; height: 100% }
 .sphere-body { display: flex; flex: 1; min-height: 0 }
-#projects { flex: 0 0 clamp(210px, 34%, 320px); margin: 0; padding: 6px; overflow: hidden auto; overflow-anchor: none; list-style: none; background: var(--sunk); border-left: 1px solid var(--line) }
+#projects { flex: 0 0 clamp(210px, 34%, 320px); margin: 0; padding: 6px; overflow: hidden auto; overflow-anchor: none; list-style: none; background: var(--sunk) }
 .pl { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 10px; width: 100%; padding: 6px; background: none; border: 1px solid transparent; border-radius: 5px; text-align: left }
 .pl:hover, .pl:focus-visible { background: var(--raise); border-color: var(--accent); outline: none }
 .pl .mini { height: 48px; overflow: hidden; border: 1px solid var(--line); border-radius: 4px }
@@ -138,13 +139,11 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .pl.no-img b { font-size: 16px }
 
 /* ASCII name banner (109 columns) scales with its panel via container units so it always fits on one line;
-   in the terminal it shares the line with the spinning donut. */
+   it shows at the top of the terminal and in whoami. */
 #about .body, #term .body { container-type: inline-size }
 .banner { margin: 0 0 8px; font: inherit; line-height: 1.15; white-space: pre }
 #about .banner { font-size: min(10px, 1.45cqw) }
-#term-out > .splash { display: flex; align-items: center; gap: 2.5ch; margin: 6px 0 10px; font-size: min(12px, 1.2cqw); line-height: 1.15; white-space: pre; overflow: hidden }
-.splash .banner { margin: 0 }
-.donut { margin: 0; color: var(--accent); font: inherit; font-size: .6em; line-height: 1.1 }
+#term-out .banner { font-size: min(12px, 1.45cqw) }
 
 /* About me */
 #about h2 { font-size: 24px }
@@ -235,7 +234,11 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
   .site.dev { display: flex; flex-direction: column; height: auto; min-height: 100dvh; overflow: auto }
   .site.dev .panel { flex: none }
   #status { display: none }
-  #projects { flex-basis: 48%; padding: 4px }
+  .sphere-body { flex-direction: column } /* phones: list under the sphere, focused entry at its top */
+  #projects { flex: 0 0 42%; padding: 4px }
+  #projects::before { height: 0 }
+  #projects::after { height: calc(100% - 64px) }
+  .site.dev #about { order: 2 } /* About me below the terminal */
   .pl { grid-template-columns: 44px 1fr; gap: 7px; padding: 5px }
   .pl .mini { height: 33px }
   .pl b { font-size: 12px }
