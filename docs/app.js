@@ -201,7 +201,7 @@ function openWin(id, title, html) {
     w.className = 'win';
     w.id = id;
     w.setAttribute('role', 'dialog');
-    w.innerHTML = '<header><b></b><button class="x btn">Close</button></header><div class="body"></div>';
+    w.innerHTML = '<header><b></b><button class="x btn" aria-label="Close"></button></header><div class="body"></div>';
     document.body.append(w);
     const h = $('header', w);
     h.onpointerdown = e => {
@@ -279,7 +279,7 @@ function openProject(i) {
   openWin('win-project', p.title, `
     ${n ? `${grid}${im.map(tile).join('')}</div>` : ''}${head}
     ${chips(p.tools)}${bullets(p.text)}${writeup(p)}${linkBtns(p.links)}
-    <div class="viewer" hidden><button class="vx btn" aria-label="Back to project">Close</button><button class="vnav" data-step="-1" aria-label="Previous">‹</button><div class="vmedia"></div><button class="vnav" data-step="1" aria-label="Next">›</button></div>`);
+    <div class="viewer" hidden><button class="vx btn" aria-label="Back to project"></button><button class="vnav" data-step="-1" aria-label="Previous">‹</button><div class="vmedia"></div><button class="vnav" data-step="1" aria-label="Next">›</button></div>`);
 }
 function view(j) {
   const im = P[openP].images, v = $('#win-project .viewer');

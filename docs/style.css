@@ -108,6 +108,12 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 #dev-btn { font: 13px/1.2 var(--mono); letter-spacing: 0 } /* the terminal font */
 #term .btn:hover, #term .btn:focus-visible, #dev-btn:hover, #dev-btn:focus-visible { color: var(--accent) }
 .site .btn:hover, .site .btn:focus-visible { border-bottom-color: currentColor; box-shadow: none; outline: none }
+/* Close buttons: a thin x (two 1.5px lines, like the scroll arrow); hover fades it as on A24. */
+.site .btn.x { position: relative }
+.site .btn:is(.x, .vx) { width: 30px; height: 30px; padding: 0; border: 0; transition: opacity .2s }
+.site .btn:is(.x, .vx)::before, .site .btn:is(.x, .vx)::after { content: ""; position: absolute; left: 50%; top: 50%; width: 22px; height: 1.5px; background: currentColor; translate: -50% -50%; rotate: 45deg }
+.site .btn:is(.x, .vx)::after { rotate: -45deg }
+.site .btn:is(.x, .vx):hover, .site .btn:is(.x, .vx):focus-visible { opacity: .6 }
 .spiral-body { display: flex; flex: 1; min-height: 0 }
 #stage { position: relative; flex: 1; min-height: 0; overflow: hidden; display: grid; place-items: center; touch-action: none; user-select: none; -webkit-user-select: none }
 #stage::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 0% 100%, color-mix(in srgb, var(--sp-bg) 92%, transparent) 25%, transparent 75%); pointer-events: none }
