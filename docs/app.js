@@ -89,12 +89,14 @@ function draw() {
   w2.style.transform = `translateX(${t * 14}vw)`;
   const n = String(Math.round(pos) + 1); // the counter under the arrow
   if (countNow.textContent !== n) countNow.textContent = n;
-  // The arrow shortens as you near the last project: how much further there is to go. The head stays the same size.
-  const L = Math.round(20 + (arrowMax - 20) * (1 - t));
-  if (+arrow.getAttribute('height') !== L) {
+  // The arrow shortens as you near the last project: how much further there is to go. The head stays the same size;
+  // over the last stretch the line also pulls out of the head, so at the end only the head is left.
+  const s = (arrowMax - 13) * (1 - t), L = Math.round(13 + s), end = L - 1 - 11.5 * (1 - Math.min(1, s / 40));
+  const d = `${end > .5 ? `M12 0V${end.toFixed(1)}` : ''}M1.5 ${L - 12.5} 12 ${L - 1} 22.5 ${L - 12.5}`;
+  if (arrow.firstChild.getAttribute('d') !== d) {
     arrow.setAttribute('height', L);
     arrow.setAttribute('viewBox', `0 0 24 ${L}`);
-    arrow.firstChild.setAttribute('d', `M12 0V${L - 1}M1.5 ${L - 12.5} 12 ${L - 1} 22.5 ${L - 12.5}`);
+    arrow.firstChild.setAttribute('d', d);
   }
   placeTitles();
 }
