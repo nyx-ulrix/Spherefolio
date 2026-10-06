@@ -45,7 +45,8 @@ $('#about-body').innerHTML = `
 const STEP = 40; // degrees between neighbouring cards: 9 per turn
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches, D = Math.PI / 180;
 let cards = [], RISE = 1, pos = 0, goal = 0, drawn = null, dir = 1, settle;
-const titleBox = $('#titles'), titleList = $('#titles ol'), countNow = $('#count-now'), w1 = $('#w1'), w2 = $('#w2');
+let arrowMax = 96; // longest the scroll arrow gets (at the first project)
+const titleBox = $('#titles'), titleList = $('#titles ol'), countNow = $('#count-now'), arrow = $('#arrow'), w1 = $('#w1'), w2 = $('#w2');
 const [first, ...more] = site.name.toUpperCase().split(/\s+/); // the name, huge and grey behind the spiral
 w1.textContent = first;
 w2.textContent = more.join(' ');
@@ -56,6 +57,7 @@ function build() { // cards are placed once; each frame only moves the wrapper
   const w = stage.clientWidth, h = stage.clientHeight;
   const H = Math.min(h * .3, w * .34), R = Math.max(H * 1.9, Math.min(w * .32, h * .6));
   RISE = H * 1.3 / (360 / STEP); // a full turn drops a little more than a card's height, so turns never overlap
+  arrowMax = Math.round(Math.min(96, Math.max(56, h * .11)));
   stage.style.perspective = `${R * 3.4}px`;
   spiral.style.cssText = `--w:${2 * Math.PI * R / (360 / STEP) * .985}px;--h:${H}px`; // card width = arc per step: one ribbon
   spiral.innerHTML = '';
@@ -87,6 +89,13 @@ function draw() {
   w2.style.transform = `translateX(${t * 14}vw)`;
   const n = String(Math.round(pos) + 1); // the counter under the arrow
   if (countNow.textContent !== n) countNow.textContent = n;
+  // The arrow shortens as you near the last project: how much further there is to go. The head stays the same size.
+  const L = Math.round(20 + (arrowMax - 20) * (1 - t));
+  if (+arrow.getAttribute('height') !== L) {
+    arrow.setAttribute('height', L);
+    arrow.setAttribute('viewBox', `0 0 24 ${L}`);
+    arrow.firstChild.setAttribute('d', `M12 0V${L - 1}M1.5 ${L - 12.5} 12 ${L - 1} 22.5 ${L - 12.5}`);
+  }
   placeTitles();
 }
 // Project names, A24-style: the one in front large in the middle, the ones before and after it above and below,
