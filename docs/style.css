@@ -1,4 +1,4 @@
-/* Spherefolio: Foundry VTT-style UI, dark or light. Shared by the site (docs/) and the GM dashboard (admin/). */
+/* Portfolio: Foundry VTT-style UI, dark or light. Shared by the site (docs/) and the GM dashboard (admin/). */
 :root {
   --accent: #ff0490;
   --pink: #f9a8ce;              /* secondary colour (site.accent2); JS overrides it from data.json */
@@ -93,33 +93,36 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .panel > header, .win > header { display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 6px 8px 6px 12px; background: var(--head); border-bottom: 1px solid var(--line); user-select: none }
 .panel > header b, .win > header b { flex: 1; overflow: hidden; color: var(--accent2); font-size: 13px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis }
 .panel > header { border-bottom: 0 } /* seamless: no borders between or around the panels */
-.panel > header .btn { padding: 1px 8px; font-size: 11px }
 .panel > .body { flex: 1; min-height: 0; overflow: auto; padding: 14px 16px 16px }
 /* Spiral view (the landing page): a plain stage, a helix ribbon of project covers, the name huge and grey behind it.
-   One typeface (Inter Tight, tight tracking), neutral greys plus the one accent. Buttons are plain text; corners are 14px
+   One typeface (Inter Tight, tight tracking) in neutral greys, no pink (only the Developer mode button keeps it,
+   in the terminal font). Buttons are plain text; corners are 14px
    on the popup and 6px on everything else (cards, media, list rows). */
 #spiral-panel { background: var(--sp-bg); color: var(--sp-ink); font-family: var(--display) }
-#spiral-panel > header { position: relative; z-index: 3; gap: 26px; min-height: 52px; padding: 10px clamp(16px, 2.4vw, 28px); background: none }
-#spiral-panel > header b { color: var(--sp-ink); font: 500 15px var(--display); letter-spacing: -.02em; text-transform: none }
-/* Buttons are plain text (no pills or outlines); hover underlines them in the accent. Shared by the header, the
-   project popup and About me. */
-#spiral-panel > header .btn, .win .btn, #about .btn { padding: 4px 0; background: none; border: 0; border-radius: 0; color: var(--sp-ink); font: 500 14px/1.2 var(--display); letter-spacing: -.01em; text-decoration: underline 1px transparent; text-underline-offset: 5px; transition: color .2s, text-decoration-color .2s }
-#spiral-panel > header .btn:hover, #spiral-panel > header .btn:focus-visible, .win .btn:hover, .win .btn:focus-visible, #about .btn:hover, #about .btn:focus-visible { border: 0; color: var(--accent); text-decoration-color: currentColor; box-shadow: none }
+#spiral-panel > header { position: relative; z-index: 3; justify-content: flex-end; gap: 26px; min-height: 52px; padding: 10px clamp(16px, 2.4vw, 28px); background: none }
+/* Buttons are plain text everywhere on the site (no pills or outlines); hover underlines them. */
+.site .btn { padding: 4px 0; white-space: nowrap; background: none; border: 0; border-radius: 0; color: var(--sp-ink); font: 500 14px/1.2 var(--display); letter-spacing: -.01em; text-decoration: underline 1px transparent; text-underline-offset: 5px; transition: color .2s, text-decoration-color .2s }
+#term .btn { color: var(--accent2); font: 12px var(--mono) }
+/* The Developer mode button glitches now and then (JS toggles .glitch and sets the random offsets). */
+#dev-btn.glitch { color: var(--accent); font-family: var(--mono); text-shadow: -2px 0 var(--accent), 2px 0 var(--sp-word); transform: translateX(var(--gx, 0)) skewX(var(--gs, 0)); clip-path: inset(var(--gt, 0) 0 var(--gb, 0) 0) }
+#dev-btn { font: 13px/1.2 var(--mono); letter-spacing: 0 } /* the terminal font */
+#term .btn:hover, #term .btn:focus-visible, #dev-btn:hover, #dev-btn:focus-visible { color: var(--accent) }
+.site .btn:hover, .site .btn:focus-visible { border: 0; color: var(--sp-ink); text-decoration-color: currentColor; box-shadow: none }
 .spiral-body { display: flex; flex: 1; min-height: 0 }
 #stage { position: relative; flex: 1; min-height: 0; overflow: hidden; display: grid; place-items: center; touch-action: none; user-select: none; -webkit-user-select: none }
-#stage::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 55% 50% at 0% 100%, color-mix(in srgb, var(--sp-bg) 92%, transparent) 25%, transparent 75%); pointer-events: none }
+#stage::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 0% 100%, color-mix(in srgb, var(--sp-bg) 92%, transparent) 25%, transparent 75%); pointer-events: none }
 #spiral { position: relative; width: 0; height: 0; transform-style: preserve-3d; will-change: transform }
 .words { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: clamp(36px, 8vh, 96px); overflow: hidden; pointer-events: none }
 .words span { color: var(--sp-word); font: 500 clamp(64px, 11.5vw, 190px)/.84 var(--display); letter-spacing: -.08em; white-space: nowrap; will-change: transform }
 #mini { position: absolute; top: 2px; left: 0; right: 0; margin: 0; padding: 0 16px; color: var(--sp-dim); font: 500 10px/1.4 var(--display); letter-spacing: .2em; text-align: center; text-transform: uppercase; pointer-events: none }
-/* The project in front, bottom left: number, name, tagline, details. Click to open it. */
-#focus { position: absolute; left: clamp(16px, 2.4vw, 28px); bottom: clamp(16px, 3vh, 32px); z-index: 2; display: flex; flex-direction: column; align-items: flex-start; max-width: min(42%, 520px); padding: 0; background: none; border: 0; color: var(--sp-ink); text-align: left }
-#focus b { margin-bottom: 8px; font: 500 clamp(30px, 3.2vw, 50px)/.95 var(--display); letter-spacing: -.055em }
-#focus span { display: -webkit-box; overflow: hidden; color: var(--sp-dim); font: 400 15px/1.35 var(--display); -webkit-line-clamp: 2; -webkit-box-orient: vertical }
-#focus small { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 14px; color: var(--sp-dim); font: 400 13px/1.4 var(--display) }
-#focus em { color: var(--sp-ink); font-style: normal; text-decoration: underline 1px; text-underline-offset: 4px; transition: color .2s }
-#focus:hover em, #focus:focus-visible em { color: var(--accent) }
-#focus:focus-visible { outline-offset: 6px }
+/* Project names, A24-style: huge stacked titles with the year in small mono beside each; the one in front is grey. */
+#titles { position: absolute; left: clamp(16px, 2.4vw, 28px); right: 28%; bottom: clamp(16px, 3vh, 32px); z-index: 2; overflow: hidden; transition: height .5s cubic-bezier(.2, .9, .25, 1) }
+#titles ol { margin: 0; padding: 0; list-style: none; transition: transform .5s cubic-bezier(.2, .9, .25, 1) }
+#titles button { display: inline-flex; align-items: flex-start; padding: 0 0 .06em; background: none; border: 0; color: var(--sp-ink); font: 500 clamp(32px, 4vw, 76px)/1 var(--display); letter-spacing: -.055em; text-align: left; text-shadow: 0 0 28px var(--sp-bg), 0 0 8px var(--sp-bg); transition: color .25s }
+#titles sup { margin: .3em 0 0 .8em; font: 400 clamp(10px, .9vw, 14px) var(--mono); letter-spacing: 0 }
+#titles li.on button, #titles button:hover { color: var(--sp-dim) }
+#titles button:focus-visible { color: var(--sp-dim); outline: none }
+@media (min-width: 801px) { #spiral { left: 11vw } #stage { perspective-origin: calc(50% + 11vw) 50% } }
 #intro { position: absolute; right: clamp(16px, 2.4vw, 28px); bottom: clamp(16px, 3vh, 32px); color: var(--sp-ink); font: 500 clamp(28px, 2.8vw, 40px)/1 var(--display); letter-spacing: -.06em; pointer-events: none }
 #intro::after { content: "↓"; display: inline-block; margin-left: .2em; animation: bob 1.6s ease-in-out infinite }
 @keyframes bob { 50% { transform: translateY(.15em) } }
@@ -127,9 +130,9 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .tile { position: absolute; left: 0; top: 0; width: var(--w); height: var(--h); margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2); padding: 0; overflow: hidden; background: var(--sp-card); border: 0; border-radius: 6px; color: var(--sp-ink); cursor: pointer }
 .tile > img, .tile > video { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; transition: filter .3s }
 .tile:hover > img, .tile:hover > video { filter: brightness(1.15) }
-.tile:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px }
+.tile:focus-visible { outline: 2px solid var(--sp-ink); outline-offset: -2px }
 .tile .ph { display: flex; flex-direction: column; justify-content: space-between; height: 100%; padding: 9% 10%; text-align: left;
-  background: radial-gradient(circle at 85% 15%, color-mix(in srgb, var(--accent) 32%, transparent), transparent 62%), var(--sp-card) }
+  background: radial-gradient(circle at 85% 15%, color-mix(in srgb, var(--sp-ink) 10%, transparent), transparent 62%), var(--sp-card) }
 .tile .ph b { font: 500 calc(var(--h) * .15)/.95 var(--display); letter-spacing: -.05em }
 .tile .ph small { color: var(--sp-dim); font: 400 calc(var(--h) * .065) var(--display) }
 .tile.launched { visibility: hidden } /* its popup is open: the card has "left" the spiral */
@@ -138,20 +141,6 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
   background: radial-gradient(circle at 85% 10%, color-mix(in srgb, var(--pink) 55%, transparent), transparent 60%), linear-gradient(160deg, color-mix(in srgb, var(--pink) 22%, var(--card-end)), var(--card-end) 85%) }
 .mini { display: block; width: 100%; height: 100% }
 .mini > * { display: block; width: 100%; height: 100%; object-fit: cover }
-/* Project list beside the spiral (under it on phones). Entries away from the focused one fade back a little. */
-#projects { flex: 0 0 clamp(230px, 26%, 320px); margin: 0; padding: 6px 12px 6px 4px; overflow: hidden auto; overflow-anchor: none; list-style: none; scrollbar-width: thin; scrollbar-color: var(--sp-line) transparent }
-.pl { display: grid; grid-template-columns: 60px 1fr; align-items: center; gap: 12px; width: 100%; padding: 7px; background: none; border: 0; border-radius: 6px; color: var(--sp-ink); text-align: left; opacity: .6; transition: scale .2s ease, background .2s, opacity .2s }
-.pl:hover, .pl:focus-visible, .pl.mid { background: var(--sp-raise); opacity: 1; outline: none }
-.pl:active { translate: 0 1px }
-.pl.mid { scale: 1.03 } /* the focused entry */
-.pl .mini { height: 45px; overflow: hidden; border-radius: 6px }
-.pl > span:last-child { min-width: 0 }
-.pl b { display: block; font: 500 15px/1.15 var(--display); letter-spacing: -.025em }
-.pl small { display: block; overflow: hidden; margin-top: 2px; color: var(--sp-dim); font: 400 12px var(--display); white-space: nowrap; text-overflow: ellipsis }
-.pl.mid small { color: var(--accent) }
-.pl.no-img { grid-template-columns: 1fr; padding: 10px 9px }
-.pl.no-img b { font-size: 19px; letter-spacing: -.04em }
-#projects::before, #projects::after { content: ""; display: block; height: calc(50% - 30px) } /* let ends reach the middle */
 
 /* ASCII name banner (109 columns) scales with its panel via container units so it always fits on one line;
    it shows at the top of the terminal and in whoami. */
@@ -177,7 +166,7 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 #about summary::-webkit-details-marker { display: none }
 #about summary::after { content: "+"; margin-left: auto; color: var(--sp-dim); font-size: 18px; font-weight: 400 }
 #about details[open] > summary::after { content: "−" }
-#about summary:hover, #about summary:focus-visible { color: var(--accent); outline: none }
+#about summary:hover, #about summary:focus-visible { color: var(--sp-dim); outline: none }
 #about .entry b { font-weight: 500 }
 #about .entry { border-bottom-color: var(--sp-line) }
 #about .entry-head span { color: var(--sp-dim); font: 13px var(--display) }
@@ -201,7 +190,7 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .mthumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: scale .4s ease }
 .mgrid.one .mthumb img { object-fit: contain }
 .mthumb:hover img { scale: 1.03 }
-.mthumb:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.mthumb:focus-visible { outline: 2px solid var(--sp-ink); outline-offset: 2px }
 .badge { position: absolute; left: 8px; top: 6px; color: #fff; font-size: 13px; font-style: normal; text-shadow: 0 0 3px #000, 0 0 3px #000 }
 .viewer { position: absolute; inset: 0; z-index: 2; display: grid; grid-template: 100% / 52px minmax(0, 1fr) 52px; background: color-mix(in srgb, var(--sp-bg) 97%, transparent) }
 .vmedia { grid-column: 2; display: grid; place-items: center; min-height: 0; padding: 58px 0 18px }
@@ -209,7 +198,7 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .vnav { grid-row: 1; background: none; border: 0; color: var(--sp-ink); font: 300 40px var(--display) }
 .vnav[data-step="-1"] { grid-column: 1 }
 .vnav[data-step="1"] { grid-column: 3 }
-.vnav:hover { color: var(--accent) }
+.vnav:hover { color: var(--sp-dim) }
 .vx { position: absolute; top: 10px; right: 12px; z-index: 1 }
 .sheet-head { margin-bottom: 16px; padding: 24px 0 20px; border-bottom: 1px solid var(--sp-line) }
 .win h2 { margin: 0; color: var(--sp-ink); font: 500 clamp(36px, 5.4vw, 72px)/.92 var(--display); letter-spacing: -.06em }
@@ -227,6 +216,8 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .body ul { margin: 8px 0; padding-left: 18px }
 .body li { margin: 5px 0 }
 .body li::marker { color: var(--accent) }
+.win li::marker, #about li::marker { color: var(--sp-dim) }
+:is(#spiral-panel, .win, #about) :focus-visible { outline-color: var(--sp-ink) }
 .links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px }
 .entry { padding: 10px 0; border-bottom: 1px dashed var(--line) }
 .entry:last-child { border: 0 }
@@ -258,31 +249,21 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 #suggest { margin: 6px 0 2px; padding: 6px 10px; background: var(--raise); border: 1px solid var(--line); border-radius: 4px }
 .sg-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; margin: 3px 0 }
 .sg-row > span { flex: 0 0 72px; color: var(--accent2); font-size: 11px; letter-spacing: .12em; text-transform: uppercase }
-.sg { padding: 1px 8px; background: none; border: 1px solid var(--line); border-radius: 3px; color: var(--muted); font: 12px/1.6 var(--mono) }
+.sg { padding: 1px 4px; background: none; border: 0; border-radius: 0; color: var(--muted); font: 12px/1.6 var(--mono) }
 .sg b { color: var(--accent); font-weight: 400 }
-.sg:hover, .sg:focus-visible { border-color: var(--accent); color: var(--text); outline: none }
+.sg:hover, .sg:focus-visible { color: var(--text); text-decoration: underline; text-underline-offset: 4px; outline: none }
 
 @media (max-width: 800px) {
   .site.dev { display: flex; flex-direction: column; height: auto; min-height: 100dvh; overflow: auto }
   .site.dev .panel { flex: none }
-  .spiral-body { flex-direction: column } /* phones: list under the spiral, focused entry at its top */
-  #projects { flex: 0 0 40%; padding: 4px 10px }
-  #projects::before { height: 0 }
-  #projects::after { height: calc(100% - 60px) }
   .site.dev #about { order: 2 } /* About me below the terminal */
-  .pl { grid-template-columns: 44px 1fr; gap: 7px; padding: 5px }
-  .pl .mini { height: 33px }
-  .pl b { font-size: 14px }
-  .pl.no-img b { font-size: 17px }
-  .pl small { font-size: 9px }
   #term { height: 75vh }
   #spiral-panel > header { min-height: 46px; padding: 8px 12px }
   #spiral-panel > header { gap: 18px }
   #spiral-panel > header .btn { font-size: 13px }
   .words span { font-size: 19vw }
-  #focus { max-width: 70% }
-  #focus span { display: none }
-  #focus b { font-size: 28px }
+  #titles { right: 16px }
+  #titles button { font-size: 9vw }
   #intro { font-size: 22px }
   .win { border-radius: 10px }
   .win > header { padding-left: 16px }

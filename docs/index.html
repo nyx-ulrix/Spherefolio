@@ -14,17 +14,16 @@
 <script type="module" src="app.js"></script>
 </head>
 <body class="site">
-<section id="spiral-panel" class="panel" aria-label="Spiral view of projects">
-  <header><b id="caption">Spiral view</b><button class="btn" id="about-btn" aria-label="About me">About me</button><button class="btn" id="dev-btn" aria-label="Developer mode: terminal view">Developer mode</button></header>
+<section id="spiral-panel" class="panel" aria-label="Projects">
+  <header><button class="btn" id="about-btn" aria-label="About me">About me</button><button class="btn" id="dev-btn" aria-label="Developer mode: terminal view">Developer mode</button></header>
   <div class="spiral-body">
     <main id="stage">
       <div class="words" aria-hidden="true"><span id="w1"></span><span id="w2"></span></div>
       <p id="mini"></p>
       <div id="spiral"></div>
-      <button id="focus"></button>
+      <div id="titles"><ol aria-label="Projects"></ol></div>
       <span id="intro" aria-hidden="true">Scroll</span>
     </main>
-    <ol id="projects" aria-label="Projects"></ol>
   </div>
 </section>
 
@@ -34,10 +33,10 @@
 </section>
 
 <section id="term" class="panel" aria-label="Terminal">
-  <header><b>Terminal · visitor@sphere</b><span class="dim">type help</span><button class="btn" id="spiral-btn" aria-label="Back to the Spiral view">Spiral view</button></header>
+  <header><b>Terminal · visitor@portfolio</b><span class="dim">type help</span><button class="btn" id="spiral-btn" aria-label="Back to the Spiral view">Spiral view</button></header>
   <div class="body">
     <div id="term-out" aria-live="polite"></div>
-    <form id="term-form"><label for="term-in" class="hl">visitor@sphere:~$</label><input id="term-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="click for suggestions"></form>
+    <form id="term-form"><label for="term-in" class="hl">visitor@portfolio:~$</label><input id="term-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="click for suggestions"></form>
     <div id="suggest" aria-label="Suggested commands" hidden></div>
   </div>
 </section>

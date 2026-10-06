@@ -1,4 +1,4 @@
-// Spherefolio GM server (local only). Serves the site (docs/) and the dashboard (admin/), saves edits into docs/,
+// Portfolio GM server (local only). Serves the site (docs/) and the dashboard (admin/), saves edits into docs/,
 // and publishes by committing docs/ and pushing to GitHub, where Pages serves the /docs folder.
 const http = require('http'), fs = require('fs'), path = require('path'), { spawn, exec, execSync } = require('child_process');
 
@@ -80,6 +80,6 @@ server.on('error', err => {
   openBrowser();
 });
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`Spherefolio GM dashboard: ${base()}/admin/\nSite preview: ${base()}/\nClose this window to stop.`);
+  console.log(`Portfolio GM dashboard: ${base()}/admin/\nSite preview: ${base()}/\nClose this window to stop.`);
   openBrowser();
 });

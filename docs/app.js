@@ -1,4 +1,4 @@
-// Spherefolio: a Spiral view of project cards (a CSS-3D helix), an About panel and a terminal, all from data.json.
+// Portfolio: a Spiral view of project cards (a CSS-3D helix), an About panel and a terminal, all from data.json.
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
 const lines = s => String(s ?? '').split('\n').map(l => l.trim()).filter(Boolean);
@@ -41,11 +41,11 @@ $('#about-body').innerHTML = `
   ${resume.map(r => drop(r.name, r.items.length, r.items.map(entry).join(''))).join('')}`;
 
 // ---- Spiral view: project cards on a helix ribbon that winds past the viewer. Scrolling turns it (wheel, swipe, arrow
-// keys, or scrolling the project list) and it settles with one card in front: the focused project.
+// keys, or tabbing through the cards) and it settles with one card in front: the focused project.
 const STEP = 40; // degrees between neighbouring cards: 9 per turn
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches, D = Math.PI / 180;
 let cards = [], RISE = 1, pos = 0, goal = 0, drawn = null, focused = -1, dir = 1, settle;
-const focusEl = $('#focus'), intro = $('#intro'), w1 = $('#w1'), w2 = $('#w2');
+const titleBox = $('#titles'), titleList = $('#titles ol'), intro = $('#intro'), w1 = $('#w1'), w2 = $('#w2');
 const [first, ...more] = site.name.toUpperCase().split(/\s+/); // the name, huge and grey behind the spiral
 w1.textContent = first;
 w2.textContent = more.join(' ');
@@ -53,7 +53,7 @@ $('#mini').textContent = site.role;
 const clampGoal = g => Math.max(0, Math.min(P.length - 1, g));
 function build() { // cards are placed once; each frame only moves the wrapper
   const w = stage.clientWidth, h = stage.clientHeight;
-  const H = Math.min(h * .3, w * .22), R = Math.max(H * 1.9, Math.min(w * .32, h * .6));
+  const H = Math.min(h * .3, w * .34), R = Math.max(H * 1.9, Math.min(w * .32, h * .6));
   RISE = H * 1.3 / (360 / STEP); // a full turn drops a little more than a card's height, so turns never overlap
   stage.style.perspective = `${R * 3.4}px`;
   spiral.style.cssText = `--w:${2 * Math.PI * R / (360 / STEP) * .985}px;--h:${H}px`; // card width = arc per step: one ribbon
@@ -88,15 +88,24 @@ function draw() {
   intro.style.opacity = Math.max(0, 1 - pos * 2).toFixed(2);
   setFocus(Math.round(pos));
 }
-function setFocus(i) { // the card in front: named bottom-left, highlighted in the list
+function setFocus(i) { // the card in front: its name is greyed in the title list
   if (i === focused || !P[i]) return;
-  const firstTime = focused < 0, p = P[i];
   focused = i;
-  focusEl.dataset.sheet = i;
-  focusEl.innerHTML = `<b>${esc(p.title)}</b>${p.tagline ? `<span>${esc(p.tagline)}</span>` : ''}<small>${meta(p)}<em>View project</em></small>`;
-  cards.forEach((c, j) => c.el.classList.toggle('lit', j === i));
-  syncList(Math.round(goal), false, firstTime ? 'auto' : 'smooth');
+  showTitles(i);
 }
+// Project names, A24-style: huge stacked titles bottom left with the year beside each, five at a time (the five that
+// include the project in front). Hover a name to turn the spiral to it; click to open it.
+titleList.innerHTML = P.map((p, i) => `<li><button data-sheet="${i}">${esc(p.title)}${p.year ? `<sup>${esc(p.year)}</sup>` : ''}</button></li>`).join('');
+const titleItems = [...titleList.children];
+function showTitles(i) {
+  const start = i - i % 5, top = titleItems[start].offsetTop, last = titleItems[Math.min(start + 5, P.length) - 1];
+  titleItems.forEach((li, j) => li.classList.toggle('on', j === i));
+  titleList.style.transform = `translateY(${-top}px)`;
+  titleBox.style.height = `${last.offsetTop + last.offsetHeight - top}px`;
+}
+titleList.addEventListener('pointerover', e => { const b = e.target.closest('[data-sheet]'); if (b) { aim(+b.dataset.sheet); rest(+b.dataset.sheet); } });
+titleList.addEventListener('focusin', e => { const b = e.target.closest('[data-sheet]'); if (b) aim(+b.dataset.sheet); });
+document.fonts?.ready.then(() => { if (focused >= 0) showTitles(focused); }); // the web font changes the line heights
 let last = performance.now();
 function tick(now) {
   const dt = Math.min(now - last, 50) / 16.7;
@@ -136,6 +145,7 @@ stage.addEventListener('touchmove', e => {
 stage.addEventListener('click', e => { const t = e.target.closest('.tile'); if (t) launch(+t.dataset.p); });
 spiral.addEventListener('pointerover', e => { const t = e.target.closest('.tile'); if (t) rest(+t.dataset.p); });
 spiral.addEventListener('pointerleave', () => clearTimeout(closing));
+spiral.addEventListener('focusin', e => { const t = e.target.closest('.tile'); if (t) aim(+t.dataset.p); }); // tabbing through the cards
 // Two modes: the Spiral view (the landing page), or Developer mode = the terminal with About me beside it (#dev links
 // straight to it). In the Spiral view, About me opens as a drawer from the right.
 const isDev = () => document.body.classList.contains('dev');
@@ -146,61 +156,26 @@ function setDev(on) {
   closeSheet();
   history.replaceState(null, '', on ? '#dev' : location.pathname + location.search);
 }
-// ---- Project list beside the spiral: hover/focus turns that project's card to the front, click opens it.
-const plist = $('#projects');
-plist.innerHTML = P.map((p, i) => `<li>${p.images?.length // photo thumbnail when there is one; otherwise just a bigger name
-  ? `<button class="pl" data-sheet="${i}"><span class="mini"><img src="${thumb(p.images[0])}" alt="" loading="lazy"></span>`
-  : `<button class="pl no-img" data-sheet="${i}">`}`
-  + `<span><b>${esc(p.title)}</b><small>${meta(p)}</small></span></button></li>`).join('');
-for (const ev of ['pointerover', 'focusin']) plist.addEventListener(ev, e => {
-  const b = e.target.closest('[data-sheet]');
-  if (!b || performance.now() - scrolledAt < 300) return; // items sliding under a still cursor while scrolling don't count
-  aim(+b.dataset.sheet);
-  if (ev === 'pointerover') rest(+b.dataset.sheet, true);
-});
-// Leaving the list goes back to the focused entry, unless project details are open.
-plist.addEventListener('pointerleave', () => { clearTimeout(closing); if (openP == null) aim(midP()); });
-plist.addEventListener('focusout', e => { if (!plist.contains(e.relatedTarget) && openP == null) aim(midP()); });
-
-// Scroll focus: scrolling the list focuses the entry in the middle (the top one on phones): it's highlighted, zoomed a
-// little, and the spiral turns to it. Only visitor-driven scrolling counts (wheel, touch, keys, scrollbar).
-let scrolledAt = 0, userScrollUntil = 0;
-const userScrolling = () => { userScrollUntil = performance.now() + 800; };
-for (const ev of ['wheel', 'touchmove', 'keydown', 'pointerdown']) plist.addEventListener(ev, userScrolling, { passive: true });
-const midP = () => { const m = plist.querySelector('.pl.mid'); return m ? +m.dataset.sheet : null; };
-function setMid(b) {
-  plist.querySelectorAll('.pl.mid').forEach(x => { if (x !== b) x.classList.remove('mid'); });
-  if (b && !b.classList.contains('mid')) { b.classList.add('mid'); aim(+b.dataset.sheet); }
-}
-plist.addEventListener('scroll', () => {
-  if (performance.now() > userScrollUntil) return;
-  userScrollUntil = Math.max(userScrollUntil, performance.now() + 300); // momentum scrolling keeps counting
-  scrolledAt = performance.now();
-  const box = plist.getBoundingClientRect(), top = box.top + parseFloat(getComputedStyle(plist).paddingTop);
-  let best = null, bestD = Infinity;
-  for (const b of plist.querySelectorAll('.pl')) {
-    const r = b.getBoundingClientRect();
-    const d = Math.abs(phone() ? r.top - top : r.top + r.height / 2 - (box.top + box.height / 2)); // phones: top entry
-    if (d < bestD) { bestD = d; best = b; }
+// Every few seconds the Developer mode button glitches: its letters scramble and it flickers into a sliced, shifted,
+// monospace version of itself for a moment (not for visitors who prefer reduced motion).
+const devBtn = $('#dev-btn'), devLabel = devBtn.textContent, junk = '!<>-_/[]{}=+*^?#01$%&@';
+const rnd = (a, b) => a + Math.random() * (b - a);
+function glitch() {
+  if (!isDev() && !document.hidden) {
+    devBtn.style.width = `${devBtn.offsetWidth}px`; // hold its size so the header doesn't jump
+    let n = 0;
+    const burst = setInterval(() => {
+      const on = ++n < 9;
+      devBtn.textContent = on ? [...devLabel].map(c => c !== ' ' && Math.random() < .35 ? junk[Math.random() * junk.length | 0] : c).join('') : devLabel;
+      devBtn.classList.toggle('glitch', on && Math.random() < .75);
+      const top = rnd(0, 45);
+      for (const [k, v] of [['--gx', `${rnd(-4, 4)}px`], ['--gs', `${rnd(-14, 14)}deg`], ['--gt', `${top}%`], ['--gb', `${rnd(0, 55 - top)}%`]]) devBtn.style.setProperty(k, v);
+      if (!on) { clearInterval(burst); devBtn.style.width = ''; }
+    }, 55);
   }
-  setMid(best);
-}, { passive: true });
-// Phones show the list under the spiral, and the focused entry sits at its top instead of the middle.
-const phone = () => matchMedia('(max-width: 800px)').matches;
-const hovering = () => matchMedia('(hover: hover)').matches && plist.matches(':hover');
-function placeList(b, behavior) {
-  const box = plist.getBoundingClientRect(), r = b.getBoundingClientRect();
-  plist.scrollBy({ top: phone() ? r.top - box.top - parseFloat(getComputedStyle(plist).paddingTop) : r.top + r.height / 2 - (box.top + box.height / 2), behavior });
+  setTimeout(glitch, rnd(1800, 5000));
 }
-function syncList(i, picked, behavior = 'smooth') { // mark the focused project's entry and bring it into view
-  if (!picked && (performance.now() < userScrollUntil || hovering())) return; // they're using the list itself
-  const b = plist.querySelector(`[data-sheet="${i}"]`);
-  if (!b) return;
-  plist.querySelectorAll('.pl.mid').forEach(x => x.classList.remove('mid'));
-  b.classList.add('mid');
-  if (!hovering()) placeList(b, behavior); // never slide entries out from under the pointer
-}
-new ResizeObserver(() => { const b = plist.querySelector('.pl.mid'); if (b) placeList(b, 'auto'); }).observe(plist);
+if (!still) setTimeout(glitch, 1200);
 new ResizeObserver(() => { // also does the first build
   if (stage.clientWidth) build(); // hidden in Developer mode: rebuilt when it's shown again
 }).observe(stage);
@@ -254,14 +229,12 @@ function closeSheet() {
   $('#win-project')?.remove();
   openP = null;
   spiral.querySelectorAll('.launched').forEach(el => el.classList.remove('launched')); // the card returns to the spiral
-  aim(midP());
 }
 // Opening a project: turn its card to the front, then grow the popup out of that card toward the viewer (the card
 // leaves the spiral while its popup is open).
 let launches = 0;
 async function launch(i) {
   aim(i);
-  syncList(i, true);
   if (still) return openProject(i);
   const token = ++launches;
   const t0 = performance.now();
@@ -283,9 +256,9 @@ async function launch(i) {
     { transform: 'none', opacity: 1 },
   ], { duration: 480, easing: 'cubic-bezier(.2, .9, .25, 1)' });
 }
-function rest(p, fromList) {
+function rest(p) {
   clearTimeout(closing);
-  if (openP != null && p !== openP) closing = setTimeout(() => { closeSheet(); if (fromList) aim(p); }, 350);
+  if (openP != null && p !== openP) closing = setTimeout(closeSheet, 350);
 }
 function openProject(i) {
   openP = i;
@@ -397,7 +370,7 @@ const hist = [];
 let hp = 0;
 function run(line) {
   sug.hidden = true;
-  print(`<span class="hl">visitor@sphere</span>:~$ ${esc(line)}`);
+  print(`<span class="hl">visitor@portfolio</span>:~$ ${esc(line)}`);
   line = line.trim();
   if (!line) return;
   hist.push(line);
@@ -405,13 +378,12 @@ function run(line) {
   const [c, ...a] = line.split(/\s+/), name = c.toLowerCase();
   Object.hasOwn(cmds, name) ? cmds[name](a.join(' ')) : print(`command not found: ${esc(c)} · type ${cmd('help')}`);
 }
-// Boot: the ASCII name (or the plain name) and the hints, then it types `ls` itself so every project is listed.
-const bootLines = [`<span class="dim">SPHEREFOLIO OS v1.0.3 · link established · latency 1ms · ${P.length} projects · ${resume.length} dossiers</span>`,
+// Boot: the ASCII name (or the plain name) and the hints.
+const bootLines = [`<span class="dim">PORTFOLIO OS v1.0.3 · link established · latency 1ms · ${P.length} projects · ${resume.length} dossiers</span>`,
   banner() || `<b class="hl">${esc(site.name)}</b>`,
   esc(site.role),
   `type ${cmd('help')} or try ${cmd('ls')} ${cmd('stack')} ${cmd('whoami')} ${resume.slice(0, 2).map(r => cmd(key(r.name))).join(' ')} · click the prompt for suggestions`, ''];
 bootLines.forEach((l, i) => setTimeout(() => print(l), i * 110));
-setTimeout(() => typeRun('ls'), bootLines.length * 110 + 250);
 $('#term-form').onsubmit = e => { e.preventDefault(); run(tin.value); tin.value = ''; };
 tin.onkeydown = e => {
   const first = !sug.hidden && sug.querySelector('[data-cmd]');
@@ -483,7 +455,7 @@ matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => { //
 });
 
 // Project details and the About drawer never block the view: interacting (click, tap, drag, focus) anywhere outside
-// them closes them. Capture phase, so the list/spiral handlers that run next can turn the spiral.
+// them closes them. Capture phase, so the spiral handlers that run next can turn it.
 for (const ev of ['pointerdown', 'focusin'])
   document.addEventListener(ev, e => {
     if (!e.target.closest?.('.win')) closeSheet();

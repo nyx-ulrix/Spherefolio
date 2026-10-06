@@ -1,9 +1,9 @@
-# Spherefolio
+# Portfolio
 
-My portfolio as one screen: a draggable 3D sphere of project cards (top left, click for fullscreen), a terminal with suggestions below it, and About me down the right. The UI is styled after Foundry VTT, in dark or light mode (follows the system; toggle under About me). It's a static site on GitHub Pages (free), and a small local dashboard edits it.
+My portfolio as one screen: project cards on a 3D spiral that turns as you scroll, with the project names listed big in the corner, plus a Developer mode with a terminal and About me. Dark or light mode follows the system (toggle under About me). It's a static site on GitHub Pages (free), and a small local dashboard edits it.
 
 **Live:** https://liewjiaen.com
 
-## How the sphere works
+## How the spiral works
 
-Tiles sit on a Fibonacci lattice (`phi = acos(1 - 2(i+.5)/N)`, `theta = π(1+√5)i`), and each tile is rotated to face outward with `atan2`/`asin`. Each frame rotates only the wrapper (`preserve-3d` inside a `perspective` stage). Tiles fade with depth, and back-facing tiles ignore clicks.
+Cards sit on a helix: card i is turned `i × 40°` around the vertical axis, pushed out to the radius and dropped a little, so nine cards make a turn and turns never overlap. Each frame only the wrapper turns and rises (`preserve-3d` inside a `perspective` stage), easing toward the card you scrolled to. Cards dim with depth, and ones facing away ignore clicks.

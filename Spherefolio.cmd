@@ -1,5 +1,5 @@
 @echo off
-title Spherefolio GM
+title Portfolio GM
 cd /d "%~dp0"
 node server.js
 pause
