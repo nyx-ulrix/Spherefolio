@@ -17,6 +17,21 @@
   },
   "projects": [
     {
+      "title": "Budgeter",
+      "tagline": "Pixel-art daily budget planner with receipt scanning and widgets",
+      "year": "2026",
+      "type": "Passion project",
+      "tools": "Kotlin, Jetpack Compose, ML Kit, CameraX, Jetpack Glance, WorkManager, Google Sheets API, GitHub Actions",
+      "links": "GitHub | https://github.com/nyx-ulrix/budgeter\nDownload | https://github.com/nyx-ulrix/budgeter/releases/latest\nWebsite | https://nyx-ulrix.github.io/budgeter/",
+      "text": "Built a pixel-art Android budget planner in Kotlin and Jetpack Compose that turns a monthly budget and savings target into one daily spending number, carrying unspent days forward within the month.\nImplemented on-device receipt reading with ML Kit, splitting each item's cost with its share of the printed service charge and GST using largest-remainder rounding so shares always add up to the receipt.\nIntegrated optional AI parsing through one OpenAI-compatible client for Gemini, Claude, OpenAI, DeepSeek, Perplexity and OpenRouter (OAuth PKCE sign-in), sending recognised text only and encrypting keys with the Android Keystore.\nDesigned bill splitting by equal shares, percentage, exact amounts or item, with a tracker for who has paid back.\nBuilt trip budgets with planned costs and a monthly set-aside that stays out of the daily budget.\nRendered home-screen widgets with Jetpack Glance as bitmaps drawn in the app's own pixel fonts, so they match the app.\nExported transactions to Google Sheets through the REST API with the non-sensitive drive.file scope, deduplicating by ID and retrying with WorkManager.\nSet up signed releases with GitHub Actions and an in-app updater that installs new versions from GitHub Releases after checking the signing certificate.",
+      "writeup": "I wanted a budget app that tells me what I can spend today without putting my total savings on the main screen, and that fits how I actually spend. So I built Budgeter for myself.\n\nIt turns my monthly budget and savings target into one daily number. Money I don't use on a day carries forward, groceries and bills lower the whole month instead of a single day, and a colour-coded bar shows where the month went. I can scan a receipt, split it by item including service charge and GST, plan a trip months ahead, and check two pixel-art widgets on my home screen.\n\nReceipts are read on the phone with ML Kit; if I choose an AI provider, only the recognised text is sent to sort it into items. Getting the maths right mattered most: every amount is stored in cents and charges are spread with largest-remainder rounding, so split shares always add up to the receipt.\n\nI use it on my Oppo Find N3 Flip. GitHub Actions builds and signs each release, and the app updates itself from them.",
+      "images": [
+        "budgeter.webp",
+        "budgeter-2.webp",
+        "budgeter-3.webp"
+      ]
+    },
+    {
       "title": "PixelPad",
       "tagline": "Tablet and pen as a PC trackpad, drawing tablet and controller",
       "year": "2026",
