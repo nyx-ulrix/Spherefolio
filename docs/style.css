@@ -199,7 +199,7 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 #win-contact { width: 100vw; height: 100dvh; justify-content: center; align-items: center; background: rgba(0, 0, 0, .8); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #f2f2f2; border: 0; box-shadow: none; animation: dim .2s ease }
 @keyframes dim { from { opacity: 0 } }
 #stage { transition: filter .2s ease }
-.contact-open #stage { filter: brightness(.3) } /* the cards dim with the screen */
+.contact-open #stage { filter: brightness(.9) } /* the cards dim a little more than the screen */
 #win-contact > header { position: absolute; top: 0; right: 0; padding: 14px clamp(16px, 2.4vw, 28px); pointer-events: none } /* not a drag handle here */
 .site #win-contact .x { color: #f2f2f2; pointer-events: auto }
 #win-contact .body { flex: none; padding: 24px; color: #f2f2f2 }
