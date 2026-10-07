@@ -51,6 +51,7 @@ const titleBox = $('#titles'), titleList = $('#titles ol'), countNow = $('#count
 const [first, ...more] = site.name.toUpperCase().split(/\s+/); // the name, huge and grey behind the spiral
 w1.textContent = first;
 w2.textContent = more.join(' ');
+$('#pitch p').textContent = site.role; // the dashboard's "Headline": the one-line pitch above the name
 $('#count-all').textContent = P.length;
 const clampGoal = g => Math.max(0, Math.min(P.length - 1, g));
 function build() { // cards are placed once; each frame only moves the wrapper
@@ -208,11 +209,13 @@ requestAnimationFrame(tick);
 
 // ---- Contact me: the email address (opens the visitor's mail app; or copy it) with LinkedIn at the bottom.
 const contact = (() => { const l = links(site.links); return { mail: l.find(x => x.url.startsWith('mailto:')), linkedin: l.find(x => /linkedin\./i.test(x.url)) }; })();
-function openContact() {
-  const addr = contact.mail?.url.slice(7) || '';
-  openWin('win-contact', 'Contact me', `<div class="sheet-head"><h2>Contact me</h2></div>
-    <a class="contact-mail" href="mailto:${esc(addr)}?subject=${encodeURIComponent('Hello from liewjiaen.com')}">${esc(addr)}</a>
-    <div class="links"><a class="btn" href="mailto:${esc(addr)}?subject=${encodeURIComponent('Hello from liewjiaen.com')}">Send an email ↗</a><button class="btn" data-copy="${esc(addr)}">Copy address</button></div>
+// "Have a problem?" (the hiring pitch under the header) opens the same window, framed for someone with work to offer.
+function openContact(problem) {
+  const addr = contact.mail?.url.slice(7) || '', title = problem ? 'Have a problem?' : 'Contact me';
+  const mailto = esc(`mailto:${addr}?subject=${encodeURIComponent(problem ? 'I have a problem' : 'Hello from liewjiaen.com')}`);
+  openWin('win-contact', title, `<div class="sheet-head"><h2>${title}</h2>${problem ? `<p class="tagline">Tell me what you're stuck on. I'm open to developer roles.</p>` : ''}</div>
+    <a class="contact-mail" href="${mailto}">${esc(addr)}</a>
+    <div class="links"><a class="btn" href="${mailto}">Send an email ↗</a><button class="btn" data-copy="${esc(addr)}">Copy address</button></div>
     ${contact.linkedin ? `<div class="contact-foot"><a class="btn" href="${esc(contact.linkedin.url)}" target="_blank" rel="noopener">LinkedIn ↗</a></div>` : ''}`);
 }
 const closeContact = () => $('#win-contact')?.remove();
@@ -556,11 +559,12 @@ tbody.addEventListener('scroll', () => { tprev.hidden = true; });
 // ---- Global input
 document.addEventListener('click', e => {
   if (e.target.matches('.viewer, .vmedia')) return closeViewer(); // click the backdrop around full-size media
-  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],[data-drop],#dev-btn,#spiral-btn,#about-btn,#contact-btn,[data-copy],#about-close,#theme-icon,.vx,.x');
+  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],[data-drop],#dev-btn,#spiral-btn,#about-btn,#contact-btn,#problem-btn,[data-copy],#about-close,#theme-icon,.vx,.x');
   if (!t) return;
   const d = t.dataset;
   if (t.id === 'dev-btn' || t.id === 'spiral-btn') setDev(t.id === 'dev-btn');
   else if (t.id === 'contact-btn') $('#win-contact') ? closeContact() : openContact();
+  else if (t.id === 'problem-btn') openContact(true);
   else if (d.copy) navigator.clipboard?.writeText(d.copy).then(() => { t.textContent = 'Copied'; setTimeout(() => { t.textContent = 'Copy address'; }, 1600); });
   else if (t.closest('#win-contact')) closeContact(); // its ✕
   else if (t.id === 'about-btn') setAbout(!document.body.classList.contains('about-open'));
@@ -602,7 +606,7 @@ for (const ev of ['pointerdown', 'focusin'])
   document.addEventListener(ev, e => {
     if (!e.target.closest?.('.win')) closeSheet();
     if (!e.target.closest?.('#about, #about-btn')) setAbout(false);
-    if (!e.target.closest?.('#win-contact, #contact-btn')) closeContact();
+    if (!e.target.closest?.('#win-contact, #contact-btn, #problem-btn')) closeContact();
   }, true);
 
 addEventListener('keydown', e => {

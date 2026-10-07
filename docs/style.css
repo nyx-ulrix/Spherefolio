@@ -130,6 +130,11 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 #stage::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 0% 100%, color-mix(in srgb, var(--sp-bg) 92%, transparent) 25%, transparent 75%); pointer-events: none }
 #spiral { position: relative; width: 0; height: 0; transform-style: preserve-3d; will-change: transform }
 .words { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: clamp(36px, 8vh, 96px); overflow: hidden; pointer-events: none }
+/* The pitch and the hiring call to action, top centre above the name. */
+#pitch { position: absolute; top: 4px; left: 0; right: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 16px; text-align: center }
+#pitch p { margin: 0; color: var(--sp-dim); font: 400 14px/1.35 var(--display) }
+.site #problem-btn { font-size: 16px; font-weight: 500; border-bottom-color: currentColor }
+.site #problem-btn:hover, .site #problem-btn:focus-visible { opacity: .6 }
 .words span { color: var(--sp-word); font: 500 clamp(64px, 11.5vw, 190px)/.84 var(--display); letter-spacing: -.06em; white-space: nowrap; will-change: transform }
 /* Project names, A24-style: big titles with the year in small mono beside each (JS places, scales and fades the rows). */
 #titles { position: absolute; left: clamp(16px, 2.4vw, 28px); right: 28%; bottom: clamp(16px, 3vh, 32px); z-index: 2 }
@@ -284,7 +289,9 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
   #spiral-panel > header { min-height: 46px; padding: 8px 12px }
   #spiral-panel > header { gap: 18px }
   #spiral-panel > header .btn { font-size: 13px }
+  .words { padding-top: 96px } /* room for the pitch */
   .words span { font-size: 19vw }
+  #pitch p { font-size: 13px; text-wrap: balance }
   #titles { right: 44px }
   #titles button { font-size: 9vw }
   .win { border-radius: 10px }
