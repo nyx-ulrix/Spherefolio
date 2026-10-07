@@ -374,12 +374,24 @@ const stacks = [...P.reduce((m, p, i) => {
 const tthumb = i => P[i].images?.length ? `<img class="tthumb" src="${thumb(P[i].images[0])}" alt="" loading="lazy" data-open="${i}">` : '<span class="tthumb"></span>';
 function table(ids, note) {
   const tw = Math.max(8, ...P.map(p => p.title.length)) + 2, yw = Math.max(5, ...P.map(p => String(p.type).length)) + 2;
-  print(`<span class="tthumb blank"></span><span class="dim">#   ${pad('PROJECT', tw)}${pad('TYPE', yw)}YEAR</span>\n`
-    + ids.map(i => `<span class="trow"${P[i].images?.length ? ` data-img="${thumb(P[i].images[0])}"` : ''}>${tthumb(i)}${String(i + 1).padStart(2, '0')}  ${pad(P[i].title, tw, `<a data-open="${i}">${esc(P[i].title)}</a>`)}${pad(P[i].type, yw)}${esc(P[i].year)}</span>`).join('\n')
-    + `\n<span class="dim">  ${note} · </span>${cmd('open')}<span class="dim"> &lt;n&gt; for details, or click a card on the spiral</span>`, 'pre');
+  print(`<span class="tthumb blank"></span><span class="dim">${pad('PROJECT', tw)}${pad('TYPE', yw)}YEAR</span>\n`
+    + ids.map(i => `<span class="trow"${P[i].images?.length ? ` data-img="${thumb(P[i].images[0])}"` : ''}>${tthumb(i)}${pad(P[i].title, tw, `<a data-open="${i}">${esc(P[i].title)}</a>`)}${pad(P[i].type, yw)}${esc(P[i].year)}</span>`).join('\n')
+    + `\n<span class="dim">  ${note} · type a name (or nano &lt;name&gt;) for details, or click a card on the spiral</span>`, 'pre');
+}
+// Projects by name: case, spaces and punctuation don't matter. An exact name wins, then one that starts with what was
+// typed, then one containing it.
+const norm = t => String(t).toLowerCase().replace(/[^a-z0-9]/g, '');
+function findProject(q) {
+  const k = norm(q);
+  if (!k) return -1;
+  for (const hit of [t => t === k, t => t.startsWith(k), t => t.includes(k)]) {
+    const i = P.findIndex(p => hit(norm(p.title)));
+    if (i >= 0) return i;
+  }
+  return -1;
 }
 const cmds = {
-  help: () => print([['ls [filter]', 'list projects'], ['stack [skill]', 'projects by skill / tool'], ['open <n|name>', 'show one project'], ['about', 'About me (also: whoami)'],
+  help: () => print([['ls [filter]', 'list projects'], ['stack [skill]', 'projects by skill / tool'], ['nano <name>', 'show a project (or just type its name)'], ['about', 'About me (also: whoami)'],
     ...resume.map(r => [key(r.name), r.name]), ['clear', 'clear the screen']]
     .map(([c, d]) => '  ' + pad(c, 18, `<a data-cmd="${c.split(' ')[0]}">${esc(c)}</a>`) + `<span class="dim">${esc(d)}</span>`).join('\n'), 'pre'),
   ls: (q = '') => {
@@ -392,9 +404,9 @@ const cmds = {
     if (!hit) return print(`no project uses "${esc(q)}" · see ${cmd('stack')}`);
     table(hit[1], `${hit[1].length} project${hit[1].length > 1 ? 's' : ''} using ${esc(hit[0])}`);
   },
-  open: (q = '') => {
-    const i = /^\d+$/.test(q) ? q - 1 : q ? P.findIndex(p => p.title.toLowerCase().includes(q.toLowerCase())) : -1, p = P[i];
-    if (!p) return print(`usage: open &lt;number|name&gt; · see ${cmd('ls')}`);
+  nano: (q = '') => {
+    const p = P[findProject(q)];
+    if (!p) return print(q ? `no project matches "${esc(q)}" · see ${cmd('ls')}` : `usage: nano &lt;project name&gt;, or just type the name · see ${cmd('ls')}`);
     const im = p.images || [];
     print(`<b class="hl">── ${esc(p.title)} ${'─'.repeat(Math.max(3, 44 - p.title.length))}</b>
 ${esc(p.tagline)}
@@ -420,7 +432,7 @@ function suggest() {
   const q = tin.value.trim().toLowerCase();
   const groups = [
     ['Try', [['about', 'about me'], ['ls', 'all projects'], ['stack', 'by skill'], ...resume.map(r => [key(r.name), r.name]), ['help', 'every command']], 8],
-    ['Open', P.map((p, i) => [`open ${i + 1}`, p.title]), 5],
+    ['Open', P.map(p => [`nano ${p.title.toLowerCase()}`, p.type]), 5],
     ['By skill', stacks.map(([t, ids]) => [`stack ${t}`, `×${ids.length}`]), 8],
   ].map(([name, items, n]) => [name, items.filter(([c, l]) => !q || `${c} ${l}`.toLowerCase().includes(q)).slice(0, q ? 6 : n)])
     .filter(([, items]) => items.length);
@@ -446,7 +458,9 @@ function run(line) {
   hist.push(line);
   hp = hist.length;
   const [c, ...a] = line.split(/\s+/), name = c.toLowerCase();
-  Object.hasOwn(cmds, name) ? cmds[name](a.join(' ')) : print(`command not found: ${esc(c)} · type ${cmd('help')}`);
+  if (Object.hasOwn(cmds, name)) cmds[name](a.join(' '));
+  else if (norm(line).length >= 3 && findProject(line) >= 0) cmds.nano(line); // just a project's name
+  else print(`command not found: ${esc(c)} · type ${cmd('help')}`);
   // One scroll, now, just far enough to show the new output (never past the command line); none while it types.
   const view = tbody.getBoundingClientRect(), over = out.getBoundingClientRect().bottom + 60 - view.bottom;
   if (over > 0) tbody.scrollTop += Math.min(over, echo.getBoundingClientRect().top - view.top - 8);
@@ -539,7 +553,7 @@ document.addEventListener('click', e => {
   else if (t.id === 'about-close') setAbout(false);
   else if (t.id === 'theme-icon') setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
   else if (d.sheet) launch(+d.sheet);
-  else if (d.open) typeRun(`open ${+d.open + 1}`);
+  else if (d.open) typeRun(`nano ${P[d.open].title.toLowerCase()}`);
   else if (d.drop) toggleDrop(t);
   else if (d.cmd) typeRun(d.cmd);
   else if (d.v) view(+d.v);
