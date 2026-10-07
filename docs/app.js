@@ -218,8 +218,9 @@ function openContact(problem) {
   const mailto = esc(`mailto:${addr}?subject=${encodeURIComponent(problem ? 'I have a problem' : 'Hello from liewjiaen.com')}`);
   openWin('win-contact', title, `<a class="contact-mail" href="${mailto}"><svg viewBox="0 0 96 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M0 12H95M83.5 1.5 95 12 83.5 22.5"/></svg>${esc(addr)}</a>
     <div class="contact-icons">${icon('github', contact.github)}${icon('linkedin', contact.linkedin)}</div>`);
+  document.body.classList.add('contact-open'); // dims the spiral cards too (CSS)
 }
-const closeContact = () => $('#win-contact')?.remove();
+const closeContact = () => { $('#win-contact')?.remove(); document.body.classList.remove('contact-open'); };
 
 // ---- Project sheets: draggable Foundry-style windows, Esc closes the top one.
 let zTop = 20;
@@ -560,6 +561,7 @@ tbody.addEventListener('scroll', () => { tprev.hidden = true; });
 // ---- Global input
 document.addEventListener('click', e => {
   if (e.target.matches('.viewer, .vmedia')) return closeViewer(); // click the backdrop around full-size media
+  if (e.target.matches('#win-contact, #win-contact > .body, .contact-icons')) return closeContact(); // the dark area
   const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],[data-drop],#dev-btn,#spiral-btn,#about-btn,#contact-btn,#problem-btn,#about-close,#theme-icon,.vx,.x');
   if (!t) return;
   const d = t.dataset;

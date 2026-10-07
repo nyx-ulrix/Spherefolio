@@ -194,13 +194,15 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 
 /* Project popup: one fixed size, centred (JS), in the Spiral view's style. Media on top, then the name, details and
    write-up; the viewer shows one item full size over the whole popup. */
-/* Contact me, as A24 does its pop-up: a plain black box (sharp corners, no shadow), one action marked by a long thin
-   arrow, then the profile icons. */
-#win-contact { width: min(560px, calc(100vw - 16px)); height: auto; background: #0a0a0a; color: #f2f2f2; border: 0; border-radius: 0; box-shadow: none }
-:root[data-theme=dark] #win-contact { border: 1px solid rgba(255, 255, 255, .16) }
-#win-contact > header { padding: 14px 14px 0 }
-.site #win-contact .x { color: #f2f2f2 }
-#win-contact .body { flex: none; padding: 12px clamp(24px, 6vw, 60px) clamp(36px, 6vw, 56px); color: #f2f2f2 }
+/* Contact me: no box, the whole screen darkens and the address (after a long thin arrow, as on A24) and the profile
+   icons sit in the middle. Clicking the dark area, the x or Esc closes it. */
+#win-contact { width: 100vw; height: 100dvh; justify-content: center; align-items: center; background: rgba(0, 0, 0, .8); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #f2f2f2; border: 0; box-shadow: none; animation: dim .2s ease }
+@keyframes dim { from { opacity: 0 } }
+#stage { transition: filter .2s ease }
+.contact-open #stage { filter: brightness(.3) } /* the cards dim with the screen */
+#win-contact > header { position: absolute; top: 0; right: 0; padding: 14px clamp(16px, 2.4vw, 28px); pointer-events: none } /* not a drag handle here */
+.site #win-contact .x { color: #f2f2f2; pointer-events: auto }
+#win-contact .body { flex: none; padding: 24px; color: #f2f2f2 }
 .contact-mail { display: flex; align-items: center; gap: 22px; color: #f2f2f2; font: 400 clamp(19px, 2.6vw, 26px)/1.2 var(--display); letter-spacing: -.01em; overflow-wrap: anywhere; text-decoration: none; transition: opacity .2s }
 .contact-mail svg { flex: none; width: clamp(40px, 5vw, 56px); height: 14px; overflow: visible }
 .contact-icons { display: flex; gap: 18px; margin-top: 30px }
