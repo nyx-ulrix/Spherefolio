@@ -35,7 +35,7 @@ function banner() { return site.banner ? `<pre class="banner" role="img" aria-la
 // ---- About me: each section is a native <details> dropdown; Summary starts open.
 const drop = (name, count, html, open) => `<details${open ? ' open' : ''}><summary>${esc(name)}${count ? `<span class="dim">${count}</span>` : ''}</summary>${html}</details>`;
 $('#about-body').innerHTML = `
-  ${banner()}<h2 class="about-name">${esc(site.name)}</h2><p class="muted">${esc(site.role)} · ${esc(site.location)}</p>
+  ${banner()}<h2 class="about-name">${esc(site.name)}</h2><p class="muted">${esc(site.location)}</p>
   ${linkBtns(site.links)}
   ${drop('Summary', 0, `<p>${esc(site.summary)}</p>`, true)}
   ${resume.map(r => drop(r.name, r.items.length, r.items.map(entry).join(''))).join('')}`;
@@ -51,7 +51,6 @@ const titleBox = $('#titles'), titleList = $('#titles ol'), countNow = $('#count
 const [first, ...more] = site.name.toUpperCase().split(/\s+/); // the name, huge and grey behind the spiral
 w1.textContent = first;
 w2.textContent = more.join(' ');
-$('#mini').textContent = site.role;
 $('#count-all').textContent = P.length;
 const clampGoal = g => Math.max(0, Math.min(P.length - 1, g));
 function build() { // cards are placed once; each frame only moves the wrapper
@@ -206,6 +205,17 @@ new ResizeObserver(() => { // also does the first build
   if (stage.clientWidth) build(); // hidden in Developer mode: rebuilt when it's shown again
 }).observe(stage);
 requestAnimationFrame(tick);
+
+// ---- Contact me: the email address (opens the visitor's mail app; or copy it) with LinkedIn at the bottom.
+const contact = (() => { const l = links(site.links); return { mail: l.find(x => x.url.startsWith('mailto:')), linkedin: l.find(x => /linkedin\./i.test(x.url)) }; })();
+function openContact() {
+  const addr = contact.mail?.url.slice(7) || '';
+  openWin('win-contact', 'Contact me', `<div class="sheet-head"><h2>Contact me</h2></div>
+    <a class="contact-mail" href="mailto:${esc(addr)}?subject=${encodeURIComponent('Hello from liewjiaen.com')}">${esc(addr)}</a>
+    <div class="links"><a class="btn" href="mailto:${esc(addr)}?subject=${encodeURIComponent('Hello from liewjiaen.com')}">Send an email ↗</a><button class="btn" data-copy="${esc(addr)}">Copy address</button></div>
+    ${contact.linkedin ? `<div class="contact-foot"><a class="btn" href="${esc(contact.linkedin.url)}" target="_blank" rel="noopener">LinkedIn ↗</a></div>` : ''}`);
+}
+const closeContact = () => $('#win-contact')?.remove();
 
 // ---- Project sheets: draggable Foundry-style windows, Esc closes the top one.
 let zTop = 20;
@@ -391,7 +401,7 @@ function findProject(q) {
   return -1;
 }
 const cmds = {
-  help: () => print([['ls [filter]', 'list projects'], ['stack [skill]', 'projects by skill / tool'], ['nano <name>', 'show a project (or just type its name)'], ['about', 'About me (also: whoami)'],
+  help: () => print([['ls [filter]', 'list projects'], ['stack [skill]', 'projects by skill / tool'], ['nano <name>', 'show a project (or just type its name)'], ['about', 'About me (also: whoami)'], ['contact', 'email and LinkedIn'],
     ...resume.map(r => [key(r.name), r.name]), ['clear', 'clear the screen']]
     .map(([c, d]) => '  ' + pad(c, 18, `<a data-cmd="${c.split(' ')[0]}">${esc(c)}</a>`) + `<span class="dim">${esc(d)}</span>`).join('\n'), 'pre'),
   ls: (q = '') => {
@@ -416,9 +426,11 @@ ${lines(p.text).map(l => ` • ${esc(l)}`).join('\n')}
 ${p.writeup ? `\n<span class="dim">── write-up ──</span>\n${esc(p.writeup.trim())}\n` : ''}
 ${links(p.links).map(ext).join(' ')}${im.length ? '\n' + im.map(f => `<img src="${thumb(f)}" alt="">`).join('') : ''}`);
   },
-  whoami: () => print(`${banner() || `<b class="hl">${esc(site.name)}</b>\n`}${esc(site.role)} · ${esc(site.location)}\n${links(site.links).map(ext).join(' ')}\n`
+  whoami: () => print(`${banner() || `<b class="hl">${esc(site.name)}</b>\n`}${esc(site.location)}\n${links(site.links).map(ext).join(' ')}\n`
     + aboutSecs.map((s, i) => `<div><a class="tdrop" data-drop="${i}"><span>[+]</span> ${esc(s.name)}${s.count ? ` <span class="dim">${s.count}</span>` : ''}</a>`
       + `<div class="tdrop-body" hidden></div><div class="dim">${'-'.repeat(40)}</div></div>`).join('')),
+  contact: () => print(`${contact.mail ? `email    <a href="${esc(contact.mail.url)}">${esc(contact.mail.url.slice(7))}</a>` : ''}`
+    + `${contact.linkedin ? `\nlinkedin ${ext(contact.linkedin)}` : ''}`),
   clear: () => { out.innerHTML = ''; },
 };
 for (const r of resume) cmds[key(r.name)] = () => print(`<b class="hl">── ${esc(r.name)} ──</b>` + r.items.map(it =>
@@ -468,7 +480,6 @@ function run(line) {
 // Boot: the ASCII name (or the plain name) and the hints.
 const bootLines = [`<span class="dim">PORTFOLIO OS v1.0.3 · link established · latency 1ms · ${P.length} projects · ${resume.length} dossiers</span>`,
   banner() || `<b class="hl">${esc(site.name)}</b>`,
-  esc(site.role),
   `type ${cmd('help')} or try ${cmd('about')} ${cmd('ls')} ${cmd('stack')} ${resume.slice(0, 2).map(r => cmd(key(r.name))).join(' ')} · click the prompt for suggestions`, ''];
 bootLines.forEach((l, i) => setTimeout(() => print(l), i * 110));
 // About me sections for whoami / about. Opening one types it in and grows downward; the view stays where it is.
@@ -545,10 +556,13 @@ tbody.addEventListener('scroll', () => { tprev.hidden = true; });
 // ---- Global input
 document.addEventListener('click', e => {
   if (e.target.matches('.viewer, .vmedia')) return closeViewer(); // click the backdrop around full-size media
-  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],[data-drop],#dev-btn,#spiral-btn,#about-btn,#about-close,#theme-icon,.vx,.x');
+  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],[data-drop],#dev-btn,#spiral-btn,#about-btn,#contact-btn,[data-copy],#about-close,#theme-icon,.vx,.x');
   if (!t) return;
   const d = t.dataset;
   if (t.id === 'dev-btn' || t.id === 'spiral-btn') setDev(t.id === 'dev-btn');
+  else if (t.id === 'contact-btn') $('#win-contact') ? closeContact() : openContact();
+  else if (d.copy) navigator.clipboard?.writeText(d.copy).then(() => { t.textContent = 'Copied'; setTimeout(() => { t.textContent = 'Copy address'; }, 1600); });
+  else if (t.closest('#win-contact')) closeContact(); // its ✕
   else if (t.id === 'about-btn') setAbout(!document.body.classList.contains('about-open'));
   else if (t.id === 'about-close') setAbout(false);
   else if (t.id === 'theme-icon') setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
@@ -588,10 +602,11 @@ for (const ev of ['pointerdown', 'focusin'])
   document.addEventListener(ev, e => {
     if (!e.target.closest?.('.win')) closeSheet();
     if (!e.target.closest?.('#about, #about-btn')) setAbout(false);
+    if (!e.target.closest?.('#win-contact, #contact-btn')) closeContact();
   }, true);
 
 addEventListener('keydown', e => {
-  if (e.key === 'Escape') return closeViewer() || (openP != null ? closeSheet() : setAbout(false)); // viewer, details, then About
+  if (e.key === 'Escape') return closeViewer() || (openP != null ? closeSheet() : $('#win-contact') ? closeContact() : setAbout(false)); // viewer, details, contact, About
   const v = $('#win-project .viewer');
   if (v && !v.hidden && /^Arrow(Left|Right)$/.test(e.key)) return view(+v.dataset.i + (e.key === 'ArrowRight' ? 1 : -1));
   // Spiral view: arrow / page keys step through the projects.
