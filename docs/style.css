@@ -98,8 +98,8 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .panel > .body { flex: 1; min-height: 0; overflow: auto; padding: 14px 16px 16px }
 /* Spiral view (the landing page): a plain stage, a helix ribbon of project covers, the name huge and grey behind it.
    One typeface (Host Grotesk, an NB International stand-in) in neutral greys, no pink (only the Developer mode button keeps it,
-   in the terminal font). Buttons are plain text; corners are 14px
-   on the popup and 6px on everything else (cards, media, list rows). */
+   in the terminal font). Buttons are plain text; every corner is square,
+   as on A24 (cards, popups, media, thumbnails). */
 #spiral-panel { background: var(--sp-bg); color: var(--sp-ink); font-family: var(--display) }
 #spiral-panel > header { position: relative; z-index: 3; justify-content: flex-end; gap: 26px; min-height: 52px; padding: 10px clamp(16px, 2.4vw, 28px); background: none }
 /* Buttons are plain text everywhere on the site (no pills or outlines); hover draws a 1px line under them (as on A24). */
@@ -148,7 +148,7 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 #count { position: absolute; right: clamp(18px, 2.8vw, 36px); bottom: clamp(18px, 3.4vh, 34px); display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--sp-ink); font: 400 15px/1 var(--display); font-variant-numeric: tabular-nums; pointer-events: none }
 #count svg { display: block; width: 24px; overflow: visible } /* height set from JS */
 /* Cards: the cover image/video fills the card; projects without one get a typographic card. */
-.tile { position: absolute; left: 0; top: 0; width: var(--w); height: var(--h); margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2); padding: 0; overflow: hidden; background: var(--sp-card); border: 0; border-radius: 6px; color: var(--sp-ink); cursor: pointer }
+.tile { position: absolute; left: 0; top: 0; width: var(--w); height: var(--h); margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2); padding: 0; overflow: hidden; background: var(--sp-card); border: 0; border-radius: 0; color: var(--sp-ink); cursor: pointer }
 .tile > img, .tile > video { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; transition: filter .3s }
 .tile:hover > img, .tile:hover > video { filter: brightness(1.15) }
 .tile:focus-visible { outline: 2px solid var(--sp-ink); outline-offset: -2px }
@@ -194,13 +194,20 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 
 /* Project popup: one fixed size, centred (JS), in the Spiral view's style. Media on top, then the name, details and
    write-up; the viewer shows one item full size over the whole popup. */
-/* Contact me: a small window in the same style as the project popup. */
-#win-contact { width: min(560px, calc(100vw - 16px)); height: auto }
-#win-contact .body { flex: none; padding-bottom: 22px }
-.contact-mail { display: block; margin: 0 0 6px; color: var(--sp-ink); font: 500 clamp(22px, 3.4vw, 34px)/1.1 var(--display); letter-spacing: -.03em; overflow-wrap: anywhere; text-decoration: none }
-.contact-mail:hover { opacity: .6 }
-.contact-foot { margin-top: 26px; padding-top: 14px; border-top: 1px solid var(--sp-line) }
-.win { position: fixed; z-index: 20; display: flex; flex-direction: column; width: min(1040px, calc(100vw - 16px)); height: min(840px, calc(100dvh - 32px)); overflow: hidden; background: var(--sp-bg); border: 1px solid var(--sp-line); border-radius: 14px; box-shadow: 0 30px 90px var(--shadow); color: var(--sp-ink); font: 15px/1.6 var(--display) }
+/* Contact me, as A24 does its pop-up: a plain black box (sharp corners, no shadow), one action marked by a long thin
+   arrow, then the profile icons. */
+#win-contact { width: min(560px, calc(100vw - 16px)); height: auto; background: #0a0a0a; color: #f2f2f2; border: 0; border-radius: 0; box-shadow: none }
+:root[data-theme=dark] #win-contact { border: 1px solid rgba(255, 255, 255, .16) }
+#win-contact > header { padding: 14px 14px 0 }
+.site #win-contact .x { color: #f2f2f2 }
+#win-contact .body { flex: none; padding: 12px clamp(24px, 6vw, 60px) clamp(36px, 6vw, 56px); color: #f2f2f2 }
+.contact-mail { display: flex; align-items: center; gap: 22px; color: #f2f2f2; font: 400 clamp(19px, 2.6vw, 26px)/1.2 var(--display); letter-spacing: -.01em; overflow-wrap: anywhere; text-decoration: none; transition: opacity .2s }
+.contact-mail svg { flex: none; width: clamp(40px, 5vw, 56px); height: 14px; overflow: visible }
+.contact-icons { display: flex; gap: 18px; margin-top: 30px }
+.contact-icon { display: grid; color: #f2f2f2; transition: opacity .2s }
+.contact-icon svg { width: 26px; height: 26px }
+.contact-mail:hover, .contact-icon:hover, .contact-mail:focus-visible, .contact-icon:focus-visible { opacity: .6; outline: none }
+.win { position: fixed; z-index: 20; display: flex; flex-direction: column; width: min(1040px, calc(100vw - 16px)); height: min(840px, calc(100dvh - 32px)); overflow: hidden; background: var(--sp-bg); border: 1px solid var(--sp-line); border-radius: 0; box-shadow: 0 30px 90px var(--shadow); color: var(--sp-ink); font: 15px/1.6 var(--display) }
 .win > header { min-height: 50px; padding: 8px 10px 8px 22px; background: none; border-bottom: 0; cursor: move; touch-action: none }
 .win > header b { visibility: hidden } /* the name is right below; the bar is just the drag handle + close */
 .x { padding: 0 6px; background: none; border: 0; color: var(--muted); font-size: 15px }
@@ -212,7 +219,7 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .mgrid.pair { grid-template-columns: 1fr 1fr }
 .mgrid.feat { grid-template: 1fr 1fr / 2fr repeat(var(--cols), 1fr) }
 .mgrid.feat .mthumb:first-child { grid-row: span 2 }
-.mthumb { position: relative; min-width: 0; min-height: 0; padding: 0; overflow: hidden; background: var(--sp-card); border: 0; border-radius: 6px; cursor: zoom-in }
+.mthumb { position: relative; min-width: 0; min-height: 0; padding: 0; overflow: hidden; background: var(--sp-card); border: 0; border-radius: 0; cursor: zoom-in }
 .mthumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: scale .4s ease }
 .mgrid.one .mthumb img { object-fit: contain }
 .mthumb:hover img { scale: 1.03 }
@@ -220,7 +227,7 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .badge { position: absolute; left: 8px; top: 6px; color: #fff; font-size: 13px; font-style: normal; text-shadow: 0 0 3px #000, 0 0 3px #000 }
 .viewer { position: absolute; inset: 0; z-index: 2; display: grid; grid-template: 100% / 52px minmax(0, 1fr) 52px; background: color-mix(in srgb, var(--sp-bg) 97%, transparent) }
 .vmedia { grid-column: 2; display: grid; place-items: center; min-height: 0; padding: 58px 0 18px }
-.vmedia > img, .vmedia > video { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 6px }
+.vmedia > img, .vmedia > video { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 0 }
 .vnav { grid-row: 1; background: none; border: 0; color: var(--sp-ink); font: 300 40px var(--display) }
 .vnav[data-step="-1"] { grid-column: 1 }
 .vnav[data-step="1"] { grid-column: 3 }
@@ -265,17 +272,17 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 #term a.tdrop { display: block; border-bottom: 0 } /* whoami / about: the whole [+] Section line opens it; a dashed rule under each */
 #term a.tdrop:hover { text-decoration: underline; text-underline-offset: 3px }
 .tdrop-body { display: block; padding: 2px 0 4px; color: var(--accent2) }
-#term img { height: 140px; margin: 8px 8px 0 0; border: 1px solid var(--line); border-radius: 4px; vertical-align: top }
+#term img { height: 140px; margin: 8px 8px 0 0; border: 1px solid var(--line); border-radius: 0; vertical-align: top }
 #term .trow:hover { background: var(--raise) }
-.tprev { position: fixed; z-index: 12; width: 240px; height: 180px; object-fit: cover; background: var(--shade); border: 1px solid var(--accent); border-radius: 6px; box-shadow: 0 10px 34px var(--shadow); pointer-events: none }
-#term .tthumb { display: inline-block; width: 34px; height: 24px; margin: 1px 10px 1px 0; vertical-align: middle; background: var(--raise); border: 1px solid var(--line); border-radius: 3px; object-fit: cover }
+.tprev { position: fixed; z-index: 12; width: 240px; height: 180px; object-fit: cover; background: var(--shade); border: 1px solid var(--accent); border-radius: 0; box-shadow: 0 10px 34px var(--shadow); pointer-events: none }
+#term .tthumb { display: inline-block; width: 34px; height: 24px; margin: 1px 10px 1px 0; vertical-align: middle; background: var(--raise); border: 1px solid var(--line); border-radius: 0; object-fit: cover }
 #term img.tthumb { cursor: pointer }
 #term .tthumb.blank { visibility: hidden }
 #term-form { display: flex; gap: 10px; align-items: baseline }
 #term-in { flex: 1; padding: 0; background: none; border: 0; caret-color: var(--accent) }
 #term-in:focus { box-shadow: none; outline: none }
 #term-in::placeholder { color: color-mix(in srgb, var(--accent2) 45%, transparent) }
-#suggest { margin: 6px 0 2px; padding: 6px 10px; background: var(--raise); border: 1px solid var(--line); border-radius: 4px }
+#suggest { margin: 6px 0 2px; padding: 6px 10px; background: var(--raise); border: 1px solid var(--line); border-radius: 0 }
 .sg-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; margin: 3px 0 }
 .sg-row > span { flex: 0 0 72px; color: var(--accent2); font-size: 11px; letter-spacing: .12em; text-transform: uppercase }
 .sg { padding: 1px 4px; background: none; border: 0; border-radius: 0; color: var(--muted); font: 12px/1.6 var(--mono) }
@@ -294,7 +301,6 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
   #pitch p { font-size: 13px; text-wrap: balance }
   #titles { right: 44px }
   #titles button { font-size: 9vw }
-  .win { border-radius: 10px }
   .win > header { padding-left: 16px }
   .win .body { padding: 0 16px 22px }
   #term .body { font-size: 13px }

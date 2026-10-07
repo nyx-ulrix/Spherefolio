@@ -207,16 +207,17 @@ new ResizeObserver(() => { // also does the first build
 }).observe(stage);
 requestAnimationFrame(tick);
 
-// ---- Contact me: the email address (opens the visitor's mail app; or copy it) with LinkedIn at the bottom.
-const contact = (() => { const l = links(site.links); return { mail: l.find(x => x.url.startsWith('mailto:')), linkedin: l.find(x => /linkedin\./i.test(x.url)) }; })();
+// ---- Contact me: the email address (opens the visitor's mail app) and GitHub / LinkedIn icons.
+const contact = (() => { const l = links(site.links); return { mail: l.find(x => x.url.startsWith('mailto:')), github: l.find(x => /github\.com/i.test(x.url)), linkedin: l.find(x => /linkedin\./i.test(x.url)) }; })();
+// Phosphor icons (MIT), light weight like the lightbulb
+const ICONS = { github: 'M206.13,75.92A57.79,57.79,0,0,0,201.2,29a6,6,0,0,0-5.2-3,57.77,57.77,0,0,0-47,24H123A57.77,57.77,0,0,0,76,26a6,6,0,0,0-5.2,3,57.79,57.79,0,0,0-4.93,46.92A55.88,55.88,0,0,0,58,104v8a54.06,54.06,0,0,0,50.45,53.87A37.85,37.85,0,0,0,98,192v10H72a26,26,0,0,1-26-26A38,38,0,0,0,8,138a6,6,0,0,0,0,12,26,26,0,0,1,26,26,38,38,0,0,0,38,38H98v18a6,6,0,0,0,12,0V192a26,26,0,0,1,52,0v40a6,6,0,0,0,12,0V192a37.85,37.85,0,0,0-10.45-26.13A54.06,54.06,0,0,0,214,112v-8A55.88,55.88,0,0,0,206.13,75.92ZM202,112a42,42,0,0,1-42,42H112a42,42,0,0,1-42-42v-8a43.86,43.86,0,0,1,7.3-23.69,6,6,0,0,0,.81-5.76,45.85,45.85,0,0,1,1.43-36.42,45.85,45.85,0,0,1,35.23,21.1A6,6,0,0,0,119.83,62h32.34a6,6,0,0,0,5.06-2.76,45.83,45.83,0,0,1,35.23-21.11,45.85,45.85,0,0,1,1.43,36.42,6,6,0,0,0,.79,5.74A43.78,43.78,0,0,1,202,104Z', linkedin: 'M216,26H40A14,14,0,0,0,26,40V216a14,14,0,0,0,14,14H216a14,14,0,0,0,14-14V40A14,14,0,0,0,216,26Zm2,190a2,2,0,0,1-2,2H40a2,2,0,0,1-2-2V40a2,2,0,0,1,2-2H216a2,2,0,0,1,2,2ZM94,112v64a6,6,0,0,1-12,0V112a6,6,0,0,1,12,0Zm88,28v36a6,6,0,0,1-12,0V140a22,22,0,0,0-44,0v36a6,6,0,0,1-12,0V112a6,6,0,0,1,12,0v2.11A34,34,0,0,1,182,140ZM98,84A10,10,0,1,1,88,74,10,10,0,0,1,98,84Z' };
+const icon = (k, l) => l ? `<a class="contact-icon" href="${esc(l.url)}" target="_blank" rel="noopener" aria-label="${esc(l.label)}"><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="${ICONS[k]}"/></svg></a>` : '';
 // "Have a problem?" (the hiring pitch under the header) opens the same window, framed for someone with work to offer.
 function openContact(problem) {
   const addr = contact.mail?.url.slice(7) || '', title = problem ? 'Have a problem?' : 'Contact me';
   const mailto = esc(`mailto:${addr}?subject=${encodeURIComponent(problem ? 'I have a problem' : 'Hello from liewjiaen.com')}`);
-  openWin('win-contact', title, `<div class="sheet-head"><h2>${title}</h2>${problem ? `<p class="tagline">Tell me what you're stuck on. I'm open to developer roles.</p>` : ''}</div>
-    <a class="contact-mail" href="${mailto}">${esc(addr)}</a>
-    <div class="links"><a class="btn" href="${mailto}">Send an email ↗</a><button class="btn" data-copy="${esc(addr)}">Copy address</button></div>
-    ${contact.linkedin ? `<div class="contact-foot"><a class="btn" href="${esc(contact.linkedin.url)}" target="_blank" rel="noopener">LinkedIn ↗</a></div>` : ''}`);
+  openWin('win-contact', title, `<a class="contact-mail" href="${mailto}"><svg viewBox="0 0 96 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M0 12H95M83.5 1.5 95 12 83.5 22.5"/></svg>${esc(addr)}</a>
+    <div class="contact-icons">${icon('github', contact.github)}${icon('linkedin', contact.linkedin)}</div>`);
 }
 const closeContact = () => $('#win-contact')?.remove();
 
@@ -559,13 +560,12 @@ tbody.addEventListener('scroll', () => { tprev.hidden = true; });
 // ---- Global input
 document.addEventListener('click', e => {
   if (e.target.matches('.viewer, .vmedia')) return closeViewer(); // click the backdrop around full-size media
-  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],[data-drop],#dev-btn,#spiral-btn,#about-btn,#contact-btn,#problem-btn,[data-copy],#about-close,#theme-icon,.vx,.x');
+  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],[data-drop],#dev-btn,#spiral-btn,#about-btn,#contact-btn,#problem-btn,#about-close,#theme-icon,.vx,.x');
   if (!t) return;
   const d = t.dataset;
   if (t.id === 'dev-btn' || t.id === 'spiral-btn') setDev(t.id === 'dev-btn');
   else if (t.id === 'contact-btn') $('#win-contact') ? closeContact() : openContact();
   else if (t.id === 'problem-btn') openContact(true);
-  else if (d.copy) navigator.clipboard?.writeText(d.copy).then(() => { t.textContent = 'Copied'; setTimeout(() => { t.textContent = 'Copy address'; }, 1600); });
   else if (t.closest('#win-contact')) closeContact(); // its ✕
   else if (t.id === 'about-btn') setAbout(!document.body.classList.contains('about-open'));
   else if (t.id === 'about-close') setAbout(false);
