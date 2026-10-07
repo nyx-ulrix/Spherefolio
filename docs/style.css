@@ -252,7 +252,7 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 #term-out > div { white-space: pre-wrap; overflow-wrap: anywhere }
 #term-out > .pre { white-space: pre; overflow-x: auto }
 #term a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted; cursor: pointer }
-#term a.tdrop { border-bottom: 0 } /* whoami / about: [+] Section, a dashed rule under each */
+#term a.tdrop { display: block; border-bottom: 0 } /* whoami / about: the whole [+] Section line opens it; a dashed rule under each */
 #term a.tdrop:hover { text-decoration: underline; text-underline-offset: 3px }
 .tdrop-body { display: block; padding: 2px 0 4px; color: var(--accent2) }
 #term img { height: 140px; margin: 8px 8px 0 0; border: 1px solid var(--line); border-radius: 4px; vertical-align: top }

@@ -337,8 +337,8 @@ function typeFresh() {
     outQueue = outQueue.then(type).then(() => { el.style.minHeight = ''; });
   });
 }
-function typer(el) { // empties el now; the function it returns types it back in (text in order, images as reached)
-  const parts = [], walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+function typer(el, alive = () => true) { // empties el now; the function it returns types it back in (text in order,
+  const parts = [], walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT); // images as reached)
   for (let n = walk.nextNode(); n; n = walk.nextNode()) {
     if (n.nodeType === 3 && n.data) { parts.push([n, n.data]); n.data = ''; }
     else if (n.tagName === 'IMG' || n.classList?.contains('tthumb')) { n.style.visibility = 'hidden'; parts.push([n, null]); }
@@ -347,6 +347,7 @@ function typer(el) { // empties el now; the function it returns types it back in
   return () => new Promise(done => {
     let i = 0, k = 0;
     (function tick() {
+      if (!alive()) return done(); // e.g. its section was closed meanwhile
       for (let n = step; n > 0 && i < parts.length;) {
         const [node, text] = parts[i];
         if (text == null) { node.style.visibility = ''; i++; continue; }
@@ -460,12 +461,32 @@ const entryText = it => `<b>${esc(it.title)}</b>${it.org ? ` · ${esc(it.org)}` 
   + lines(it.text).map(l => `\n • ${esc(l)}`).join('');
 const aboutSecs = [{ name: 'Summary', html: esc(site.summary) },
   ...resume.map(r => ({ name: r.name, count: r.items.length, html: r.items.map(entryText).join('\n\n') }))];
-function toggleDrop(head) {
-  const body = head.nextElementSibling, open = body.hidden;
+function toggleDrop(head) { // the whole [+] line is the button
+  const body = head.nextElementSibling, open = head.firstChild.textContent === '[+]', token = (+body.dataset.t || 0) + 1;
+  const alive = () => +body.dataset.t === token; // a newer open / close takes over
+  body.dataset.t = token;
   head.firstChild.textContent = open ? '[-]' : '[+]';
-  body.hidden = !open;
-  body.innerHTML = open ? aboutSecs[head.dataset.drop].html : ''; // closing mid-typing just leaves it typing detached nodes
-  if (open && !still) typer(body)();
+  if (open) {
+    body.hidden = false;
+    body.innerHTML = aboutSecs[head.dataset.drop].html;
+    if (!still) typer(body, alive)();
+  } else if (still) body.hidden = true;
+  else backspace(body, alive).then(() => { if (alive()) body.hidden = true; });
+}
+function backspace(el, alive) { // closing a section erases its text from the end, like holding backspace
+  const nodes = [], walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  for (let n = walk.nextNode(); n; n = walk.nextNode()) if (n.data) nodes.push(n);
+  const step = Math.max(3, Math.ceil(nodes.reduce((s, n) => s + n.data.length, 0) / 30)); // half a second
+  return new Promise(done => (function tick() {
+    if (!alive()) return done();
+    for (let n = step; n > 0 && nodes.length;) {
+      const last = nodes.at(-1), take = Math.min(n, last.data.length);
+      last.data = last.data.slice(0, -take);
+      n -= take;
+      if (!last.data) nodes.pop();
+    }
+    nodes.length ? setTimeout(tick, 16) : done();
+  })());
 }
 $('#term-form').onsubmit = e => { e.preventDefault(); run(tin.value); tin.value = ''; };
 tin.onkeydown = e => {
