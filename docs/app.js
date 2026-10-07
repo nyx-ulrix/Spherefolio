@@ -149,15 +149,16 @@ function aim(p) { // turn the spiral so this project is in front
   clearTimeout(settle);
   goal = clampGoal(p);
 }
-stage.addEventListener('wheel', e => {
+const stageBox = stage.parentElement; // the stage plus the title list beside it: scrolling either turns the spiral
+stageBox.addEventListener('wheel', e => {
   e.preventDefault();
   closeSheet();
   nudge((e.deltaY || e.deltaX) / (e.deltaMode ? 3 : 280));
 }, { passive: false });
 // Swipes count along the up-right diagonal: up or right (or both, diagonally) is "up", down or left is "down".
 let touch = null;
-stage.addEventListener('touchstart', e => { touch = e.touches[0]; }, { passive: true });
-stage.addEventListener('touchmove', e => {
+stageBox.addEventListener('touchstart', e => { touch = e.touches[0]; }, { passive: true });
+stageBox.addEventListener('touchmove', e => {
   const t = e.touches[0];
   if (touch) nudge((touch.clientY - t.clientY + t.clientX - touch.clientX) / 120);
   touch = t;

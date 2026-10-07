@@ -125,7 +125,7 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 #theme-icon { position: fixed; top: 12px; left: clamp(16px, 2.4vw, 28px); z-index: 17 } /* top left in both views */
 .light-sensor .theme-btn { display: none }
 #term > header { gap: 26px; min-height: 52px; padding: 10px clamp(16px, 2.4vw, 28px) 10px calc(clamp(16px, 2.4vw, 28px) + 52px) }
-.spiral-body { display: flex; flex: 1; min-height: 0 }
+.spiral-body { position: relative; display: flex; flex: 1; min-height: 0 }
 #stage { position: relative; flex: 1; min-height: 0; overflow: hidden; display: grid; place-items: center; touch-action: none; user-select: none; -webkit-user-select: none }
 #stage::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 0% 100%, color-mix(in srgb, var(--sp-bg) 92%, transparent) 25%, transparent 75%); pointer-events: none }
 #spiral { position: relative; width: 0; height: 0; transform-style: preserve-3d; will-change: transform }
@@ -199,7 +199,13 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 #win-contact { width: 100vw; height: 100dvh; justify-content: center; align-items: center; background: rgba(0, 0, 0, .8); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #f2f2f2; border: 0; box-shadow: none; animation: dim .2s ease }
 @keyframes dim { from { opacity: 0 } }
 #stage { transition: filter .2s ease }
-.contact-open #stage { filter: brightness(.9) } /* the cards dim a little more than the screen */
+/* Light mode: the screen goes dark, the cards dim a little more, and the project names stay on top in grey (not
+   blacked out). Dark mode: just a light 10% dim over everything. */
+:root[data-theme=light] .contact-open #stage { filter: brightness(.9) }
+:root[data-theme=light] .contact-open #titles { z-index: 9999; pointer-events: none }
+:root[data-theme=light] .contact-open #titles button { color: #8a8a8a; text-shadow: none }
+:root[data-theme=dark] #win-contact { background: rgba(0, 0, 0, .1) }
+:root[data-theme=dark] :is(.contact-mail, .contact-icon) { filter: drop-shadow(0 0 10px rgba(0, 0, 0, .75)) } /* readable over bright cards */
 #win-contact > header { position: absolute; top: 0; right: 0; padding: 14px clamp(16px, 2.4vw, 28px); pointer-events: none } /* not a drag handle here */
 .site #win-contact .x { color: #f2f2f2; pointer-events: auto }
 #win-contact .body { flex: none; padding: 24px; color: #f2f2f2 }
