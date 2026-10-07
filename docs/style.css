@@ -116,12 +116,12 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .site .btn:is(.x, .vx)::before, .site .btn:is(.x, .vx)::after { content: ""; position: absolute; left: 50%; top: 50%; width: 22px; height: 1.5px; background: currentColor; translate: -50% -50%; rotate: 45deg }
 .site .btn:is(.x, .vx)::after { rotate: -45deg }
 .site .btn:is(.x, .vx):hover, .site .btn:is(.x, .vx):focus-visible { opacity: .6 }
-/* Light / dark toggle: a moon in dark mode, a sun in light mode. Hidden when a light sensor sets the theme. */
+/* Light / dark toggle: a lightbulb, lit (filled) in light mode, off (outline) in dark mode. Hidden when a light sensor sets the theme. */
 .site .btn.icon { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; transition: opacity .2s }
 .site .btn.icon:hover, .site .btn.icon:focus-visible { opacity: .6 }
 .btn.icon svg { width: 20px; height: 20px }
-#theme-icon .sun, :root[data-theme=light] #theme-icon .moon { display: none }
-:root[data-theme=light] #theme-icon .sun { display: block }
+#theme-icon .bulb-on, :root[data-theme=light] #theme-icon .bulb-off { display: none }
+:root[data-theme=light] #theme-icon .bulb-on { display: block }
 #theme-icon { position: fixed; top: 12px; left: clamp(16px, 2.4vw, 28px); z-index: 17 } /* top left in both views */
 .light-sensor .theme-btn { display: none }
 #term > header { gap: 26px; min-height: 52px; padding: 10px clamp(16px, 2.4vw, 28px) 10px calc(clamp(16px, 2.4vw, 28px) + 52px) }

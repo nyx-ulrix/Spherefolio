@@ -319,7 +319,46 @@ function closeViewer() { // true if a viewer was open (so Esc steps back one lev
 
 // ---- Terminal
 const tbody = $('#term .body'), out = $('#term-out'), tin = $('#term-in');
-const print = (html, cls = '') => { out.insertAdjacentHTML('beforeend', `<div class="${cls}">${html || ' '}</div>`); tbody.scrollTop = tbody.scrollHeight; };
+// Output types itself in, one block after another, and never drags the view along: the reader scrolls when they like.
+// Each block keeps its finished height while it types, so nothing below it jumps.
+let fresh = [], outQueue = Promise.resolve();
+const print = (html, cls = '') => {
+  out.insertAdjacentHTML('beforeend', `<div class="${cls}">${html || ' '}</div>`);
+  if (still) return;
+  if (!fresh.length) queueMicrotask(typeFresh); // after the command has printed everything
+  fresh.push(out.lastElementChild);
+};
+function typeFresh() {
+  const els = fresh, heights = els.map(el => el.offsetHeight);
+  fresh = [];
+  els.forEach((el, i) => {
+    el.style.minHeight = `${heights[i]}px`;
+    const type = typer(el);
+    outQueue = outQueue.then(type).then(() => { el.style.minHeight = ''; });
+  });
+}
+function typer(el) { // empties el now; the function it returns types it back in (text in order, images as reached)
+  const parts = [], walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+  for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+    if (n.nodeType === 3 && n.data) { parts.push([n, n.data]); n.data = ''; }
+    else if (n.tagName === 'IMG' || n.classList?.contains('tthumb')) { n.style.visibility = 'hidden'; parts.push([n, null]); }
+  }
+  const step = Math.max(3, Math.ceil(parts.reduce((s, [, t]) => s + (t?.length || 0), 0) / 60)); // a second at most
+  return () => new Promise(done => {
+    let i = 0, k = 0;
+    (function tick() {
+      for (let n = step; n > 0 && i < parts.length;) {
+        const [node, text] = parts[i];
+        if (text == null) { node.style.visibility = ''; i++; continue; }
+        const take = Math.min(n, text.length - k);
+        node.data += text.slice(k, k + take);
+        k += take; n -= take;
+        if (k === text.length) { i++; k = 0; }
+      }
+      i < parts.length ? setTimeout(tick, 16) : done();
+    })();
+  });
+}
 const cmd = c => `<a data-cmd="${esc(c)}">${esc(c)}</a>`;
 const pad = (text, n, html = esc(text)) => html + ' '.repeat(Math.max(1, n - String(text).length));
 const ext = l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">[${esc(l.label)}]</a>`;
@@ -399,12 +438,16 @@ let hp = 0;
 function run(line) {
   sug.hidden = true;
   print(`<span class="hl">visitor@portfolio</span>:~$ ${esc(line)}`);
+  const echo = out.lastElementChild;
   line = line.trim();
   if (!line) return;
   hist.push(line);
   hp = hist.length;
   const [c, ...a] = line.split(/\s+/), name = c.toLowerCase();
   Object.hasOwn(cmds, name) ? cmds[name](a.join(' ')) : print(`command not found: ${esc(c)} · type ${cmd('help')}`);
+  // One scroll, now, just far enough to show the new output (never past the command line); none while it types.
+  const view = tbody.getBoundingClientRect(), over = out.getBoundingClientRect().bottom + 60 - view.bottom;
+  if (over > 0) tbody.scrollTop += Math.min(over, echo.getBoundingClientRect().top - view.top - 8);
 }
 // Boot: the ASCII name (or the plain name) and the hints.
 const bootLines = [`<span class="dim">PORTFOLIO OS v1.0.3 · link established · latency 1ms · ${P.length} projects · ${resume.length} dossiers</span>`,
@@ -412,32 +455,17 @@ const bootLines = [`<span class="dim">PORTFOLIO OS v1.0.3 · link established ·
   esc(site.role),
   `type ${cmd('help')} or try ${cmd('about')} ${cmd('ls')} ${cmd('stack')} ${resume.slice(0, 2).map(r => cmd(key(r.name))).join(' ')} · click the prompt for suggestions`, ''];
 bootLines.forEach((l, i) => setTimeout(() => print(l), i * 110));
-// About me sections for whoami / about, as [style, text] runs: '' plain, 'b' bold, 'dim' grey.
-const aboutSecs = [{ name: 'Summary', segs: [['', site.summary]] }, ...resume.map(r => ({ name: r.name, count: r.items.length,
-  segs: r.items.flatMap((it, n) => [['', n ? '\n\n' : ''], ['b', it.title], ['', it.org ? ` · ${it.org}` : ''], ['dim', it.when ? `  ${it.when}` : ''],
-    ...lines(it.text).map(l => ['', `\n • ${l}`])]) }))];
+// About me sections for whoami / about. Opening one types it in and grows downward; the view stays where it is.
+const entryText = it => `<b>${esc(it.title)}</b>${it.org ? ` · ${esc(it.org)}` : ''}${it.when ? `  <span class="dim">${esc(it.when)}</span>` : ''}`
+  + lines(it.text).map(l => `\n • ${esc(l)}`).join('');
+const aboutSecs = [{ name: 'Summary', html: esc(site.summary) },
+  ...resume.map(r => ({ name: r.name, count: r.items.length, html: r.items.map(entryText).join('\n\n') }))];
 function toggleDrop(head) {
-  const body = head.nextElementSibling, open = body.hidden, token = (+body.dataset.t || 0) + 1;
+  const body = head.nextElementSibling, open = body.hidden;
   head.firstChild.textContent = open ? '[-]' : '[+]';
   body.hidden = !open;
-  body.dataset.t = token; // a newer open/close stops an older typing run
-  body.innerHTML = '';
-  if (!open) return;
-  const segs = aboutSecs[head.dataset.drop].segs.filter(([, t]) => t), total = segs.reduce((n, [, t]) => n + t.length, 0);
-  const step = still ? total : Math.max(2, Math.ceil(total / 70)); // about a second, however long the section
-  let i = 0, k = 0, el = null;
-  (function tick() {
-    if (+body.dataset.t !== token) return;
-    for (let n = step; n > 0 && i < segs.length;) {
-      const [cls, text] = segs[i];
-      if (!el) { el = body.appendChild(document.createElement(cls === 'b' ? 'b' : 'span')); if (cls === 'dim') el.className = 'dim'; }
-      const take = Math.min(n, text.length - k);
-      el.textContent += text.slice(k, k + take);
-      k += take; n -= take;
-      if (k === text.length) { i++; k = 0; el = null; }
-    }
-    if (i < segs.length) setTimeout(tick, 16);
-  })();
+  body.innerHTML = open ? aboutSecs[head.dataset.drop].html : ''; // closing mid-typing just leaves it typing detached nodes
+  if (open && !still) typer(body)();
 }
 $('#term-form').onsubmit = e => { e.preventDefault(); run(tin.value); tin.value = ''; };
 tin.onkeydown = e => {
@@ -449,7 +477,7 @@ tin.onkeydown = e => {
   hp = Math.max(0, Math.min(hist.length, hp + (e.key === 'ArrowUp' ? -1 : 1)));
   tin.value = hist[hp] ?? '';
 };
-tbody.onclick = e => { if (!getSelection().toString() && !e.target.closest('a')) tin.focus(); };
+tbody.onclick = e => { if (!getSelection().toString() && !e.target.closest('a')) tin.focus({ preventScroll: true }); };
 
 // Clicked commands (links, suggestions, project names) type themselves into the prompt first, so visitors learn them.
 let typing = false;
