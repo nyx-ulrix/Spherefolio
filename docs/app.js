@@ -154,12 +154,13 @@ stage.addEventListener('wheel', e => {
   closeSheet();
   nudge((e.deltaY || e.deltaX) / (e.deltaMode ? 3 : 280));
 }, { passive: false });
-let touchY = null;
-stage.addEventListener('touchstart', e => { touchY = e.touches[0].clientY; }, { passive: true });
+// Swipes count along the up-right diagonal: up or right (or both, diagonally) is "up", down or left is "down".
+let touch = null;
+stage.addEventListener('touchstart', e => { touch = e.touches[0]; }, { passive: true });
 stage.addEventListener('touchmove', e => {
-  const y = e.touches[0].clientY;
-  if (touchY != null) nudge((touchY - y) / 120);
-  touchY = y;
+  const t = e.touches[0];
+  if (touch) nudge((touch.clientY - t.clientY + t.clientX - touch.clientX) / 120);
+  touch = t;
 }, { passive: true });
 stage.addEventListener('click', e => { const t = e.target.closest('.tile'); if (t) launch(+t.dataset.p); });
 spiral.addEventListener('pointerover', e => { const t = e.target.closest('.tile'); if (t) rest(+t.dataset.p); });
