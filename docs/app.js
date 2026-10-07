@@ -338,7 +338,7 @@ function table(ids, note) {
     + `\n<span class="dim">  ${note} · </span>${cmd('open')}<span class="dim"> &lt;n&gt; for details, or click a card on the spiral</span>`, 'pre');
 }
 const cmds = {
-  help: () => print([['ls [filter]', 'list projects'], ['stack [skill]', 'projects by skill / tool'], ['open <n|name>', 'show one project'], ['whoami', 'summary + contact'],
+  help: () => print([['ls [filter]', 'list projects'], ['stack [skill]', 'projects by skill / tool'], ['open <n|name>', 'show one project'], ['about', 'About me (also: whoami)'],
     ...resume.map(r => [key(r.name), r.name]), ['clear', 'clear the screen']]
     .map(([c, d]) => '  ' + pad(c, 18, `<a data-cmd="${c.split(' ')[0]}">${esc(c)}</a>`) + `<span class="dim">${esc(d)}</span>`).join('\n'), 'pre'),
   ls: (q = '') => {
@@ -363,19 +363,22 @@ ${lines(p.text).map(l => ` • ${esc(l)}`).join('\n')}
 ${p.writeup ? `\n<span class="dim">── write-up ──</span>\n${esc(p.writeup.trim())}\n` : ''}
 ${links(p.links).map(ext).join(' ')}${im.length ? '\n' + im.map(f => `<img src="${thumb(f)}" alt="">`).join('') : ''}`);
   },
-  whoami: () => print(`${banner() || `<b class="hl">${esc(site.name)}</b>\n`}${esc(site.role)} · ${esc(site.location)}\n\n${esc(site.summary)}\n\n${links(site.links).map(ext).join(' ')}`),
+  whoami: () => print(`${banner() || `<b class="hl">${esc(site.name)}</b>\n`}${esc(site.role)} · ${esc(site.location)}\n${links(site.links).map(ext).join(' ')}\n`
+    + aboutSecs.map((s, i) => `<div><a class="tdrop" data-drop="${i}"><span>[+]</span> ${esc(s.name)}${s.count ? ` <span class="dim">${s.count}</span>` : ''}</a>`
+      + `<div class="tdrop-body" hidden></div><div class="dim">${'-'.repeat(40)}</div></div>`).join('')),
   clear: () => { out.innerHTML = ''; },
 };
 for (const r of resume) cmds[key(r.name)] = () => print(`<b class="hl">── ${esc(r.name)} ──</b>` + r.items.map(it =>
   `\n\n<b>${esc(it.title)}</b>${it.org ? ` · ${esc(it.org)}` : ''}${it.when ? `  <span class="dim">${esc(it.when)}</span>` : ''}\n${lines(it.text).map(l => ` • ${esc(l)}`).join('\n')}`).join(''));
-Object.assign(cmds, { projects: cmds.ls, about: cmds.whoami, cls: cmds.clear });
+cmds.about = cmds.whoami; // About me, in the terminal
+Object.assign(cmds, { projects: cmds.ls, cls: cmds.clear });
 
 // Suggestions under the prompt: shown on focus/click/typing, filtered by what's typed, click (or Tab) to use.
 const sug = $('#suggest');
 function suggest() {
   const q = tin.value.trim().toLowerCase();
   const groups = [
-    ['Try', [['ls', 'all projects'], ['stack', 'by skill'], ['whoami', 'about me'], ...resume.map(r => [key(r.name), r.name]), ['help', 'every command']], 8],
+    ['Try', [['about', 'about me'], ['ls', 'all projects'], ['stack', 'by skill'], ...resume.map(r => [key(r.name), r.name]), ['help', 'every command']], 8],
     ['Open', P.map((p, i) => [`open ${i + 1}`, p.title]), 5],
     ['By skill', stacks.map(([t, ids]) => [`stack ${t}`, `×${ids.length}`]), 8],
   ].map(([name, items, n]) => [name, items.filter(([c, l]) => !q || `${c} ${l}`.toLowerCase().includes(q)).slice(0, q ? 6 : n)])
@@ -407,8 +410,36 @@ function run(line) {
 const bootLines = [`<span class="dim">PORTFOLIO OS v1.0.3 · link established · latency 1ms · ${P.length} projects · ${resume.length} dossiers</span>`,
   banner() || `<b class="hl">${esc(site.name)}</b>`,
   esc(site.role),
-  `type ${cmd('help')} or try ${cmd('ls')} ${cmd('stack')} ${cmd('whoami')} ${resume.slice(0, 2).map(r => cmd(key(r.name))).join(' ')} · click the prompt for suggestions`, ''];
+  `type ${cmd('help')} or try ${cmd('about')} ${cmd('ls')} ${cmd('stack')} ${resume.slice(0, 2).map(r => cmd(key(r.name))).join(' ')} · click the prompt for suggestions`, ''];
 bootLines.forEach((l, i) => setTimeout(() => print(l), i * 110));
+// About me sections for whoami / about, as [style, text] runs: '' plain, 'b' bold, 'dim' grey.
+const aboutSecs = [{ name: 'Summary', segs: [['', site.summary]] }, ...resume.map(r => ({ name: r.name, count: r.items.length,
+  segs: r.items.flatMap((it, n) => [['', n ? '\n\n' : ''], ['b', it.title], ['', it.org ? ` · ${it.org}` : ''], ['dim', it.when ? `  ${it.when}` : ''],
+    ...lines(it.text).map(l => ['', `\n • ${l}`])]) }))];
+function toggleDrop(head) {
+  const body = head.nextElementSibling, open = body.hidden, token = (+body.dataset.t || 0) + 1;
+  head.firstChild.textContent = open ? '[-]' : '[+]';
+  body.hidden = !open;
+  body.dataset.t = token; // a newer open/close stops an older typing run
+  body.innerHTML = '';
+  if (!open) return;
+  const segs = aboutSecs[head.dataset.drop].segs.filter(([, t]) => t), total = segs.reduce((n, [, t]) => n + t.length, 0);
+  const step = still ? total : Math.max(2, Math.ceil(total / 70)); // about a second, however long the section
+  let i = 0, k = 0, el = null;
+  (function tick() {
+    if (+body.dataset.t !== token) return;
+    for (let n = step; n > 0 && i < segs.length;) {
+      const [cls, text] = segs[i];
+      if (!el) { el = body.appendChild(document.createElement(cls === 'b' ? 'b' : 'span')); if (cls === 'dim') el.className = 'dim'; }
+      const take = Math.min(n, text.length - k);
+      el.textContent += text.slice(k, k + take);
+      k += take; n -= take;
+      if (k === text.length) { i++; k = 0; el = null; }
+    }
+    body.parentElement.lastChild.scrollIntoView({ block: 'nearest' });
+    if (i < segs.length) setTimeout(tick, 16);
+  })();
+}
 $('#term-form').onsubmit = e => { e.preventDefault(); run(tin.value); tin.value = ''; };
 tin.onkeydown = e => {
   const first = !sug.hidden && sug.querySelector('[data-cmd]');
@@ -451,15 +482,16 @@ tbody.addEventListener('scroll', () => { tprev.hidden = true; });
 // ---- Global input
 document.addEventListener('click', e => {
   if (e.target.matches('.viewer, .vmedia')) return closeViewer(); // click the backdrop around full-size media
-  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],#dev-btn,#spiral-btn,#about-btn,#about-close,#theme,#theme-icon,.vx,.x');
+  const t = e.target.closest('[data-open],[data-sheet],[data-cmd],[data-v],[data-step],[data-drop],#dev-btn,#spiral-btn,#about-btn,#about-close,#theme-icon,.vx,.x');
   if (!t) return;
   const d = t.dataset;
   if (t.id === 'dev-btn' || t.id === 'spiral-btn') setDev(t.id === 'dev-btn');
   else if (t.id === 'about-btn') setAbout(!document.body.classList.contains('about-open'));
   else if (t.id === 'about-close') setAbout(false);
-  else if (t.id === 'theme' || t.id === 'theme-icon') setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+  else if (t.id === 'theme-icon') setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
   else if (d.sheet) launch(+d.sheet);
   else if (d.open) typeRun(`open ${+d.open + 1}`);
+  else if (d.drop) toggleDrop(t);
   else if (d.cmd) typeRun(d.cmd);
   else if (d.v) view(+d.v);
   else if (d.step) view(+$('#win-project .viewer').dataset.i + +d.step);
@@ -471,7 +503,6 @@ document.addEventListener('click', e => {
 function setTheme(t, save = true) {
   document.documentElement.dataset.theme = t;
   if (save) store(`theme-${isDev() ? 'dev' : 'spiral'}`, t);
-  $('#theme').textContent = t === 'light' ? 'Dark mode' : 'Light mode';
 }
 setTheme(document.documentElement.dataset.theme || 'light', false);
 // Where the browser exposes a light sensor (few do: Chrome with its Generic Sensor flag), the room's brightness picks

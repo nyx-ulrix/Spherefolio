@@ -84,11 +84,11 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 /* Layout: the Spiral view on its own by default; Developer mode (.dev) = the terminal with About me down the right.
    In the Spiral view, About me opens as a drawer over it (.about-open). */
 .site { display: grid; grid-template: "spiral" minmax(0, 1fr) / minmax(0, 1fr); gap: 0; height: 100dvh; padding: 0 }
-.site.dev { grid-template: "term about" minmax(0, 1fr) / minmax(0, 1fr) minmax(340px, 30%) }
+.site.dev { grid-template: "term" minmax(0, 1fr) / minmax(0, 1fr) }
 #spiral-panel { grid-area: spiral }
 #about { grid-area: about }
 #term { grid-area: term }
-.site:not(.dev) :is(#term, #about), .site.dev #spiral-panel, .site.dev #about-close { display: none }
+.site:not(.dev) :is(#term, #about), .site.dev :is(#spiral-panel, #about) { display: none }
 .site.about-open:not(.dev) #about { display: flex; position: fixed; top: 0; right: 0; bottom: 0; z-index: 18; width: min(440px, 100vw); box-shadow: -12px 0 40px var(--shadow); animation: drawer .25s ease }
 @keyframes drawer { from { opacity: 0; transform: translateX(30px) } }
 .panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: var(--panel) }
@@ -104,7 +104,7 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 #spiral-panel > header { position: relative; z-index: 3; justify-content: flex-end; gap: 26px; min-height: 52px; padding: 10px clamp(16px, 2.4vw, 28px); background: none }
 /* Buttons are plain text everywhere on the site (no pills or outlines); hover draws a 1px line under them (as on A24). */
 .site .btn { padding: 2px 0; white-space: nowrap; background: none; border: 0; border-bottom: 1px solid transparent; border-radius: 0; color: var(--sp-ink); font: 400 15px/1.2 var(--display); letter-spacing: .005em; transition: color .2s, border-color .2s }
-#term .btn { color: var(--accent2); font: 12px var(--mono) }
+#term .btn { color: var(--accent2); font: 13px/1.2 var(--mono); letter-spacing: 0 }
 /* The Developer mode button glitches now and then (JS toggles .glitch and sets the random offsets). */
 #dev-btn.glitch { color: var(--accent); font-family: var(--mono); text-shadow: -2px 0 var(--accent), 2px 0 var(--sp-word); transform: translateX(var(--gx, 0)) skewX(var(--gs, 0)); clip-path: inset(var(--gt, 0) 0 var(--gb, 0) 0) }
 #dev-btn { font: 13px/1.2 var(--mono); letter-spacing: 0 } /* the terminal font */
@@ -122,8 +122,9 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .btn.icon svg { width: 20px; height: 20px }
 #theme-icon .sun, :root[data-theme=light] #theme-icon .moon { display: none }
 :root[data-theme=light] #theme-icon .sun { display: block }
-#theme-icon { margin-right: auto } /* top left */
-.site:not(.dev) #about #theme, .light-sensor .theme-btn { display: none }
+#theme-icon { position: fixed; top: 12px; left: clamp(16px, 2.4vw, 28px); z-index: 17 } /* top left in both views */
+.light-sensor .theme-btn { display: none }
+#term > header { gap: 26px; min-height: 52px; padding: 10px clamp(16px, 2.4vw, 28px) 10px calc(clamp(16px, 2.4vw, 28px) + 52px) }
 .spiral-body { display: flex; flex: 1; min-height: 0 }
 #stage { position: relative; flex: 1; min-height: 0; overflow: hidden; display: grid; place-items: center; touch-action: none; user-select: none; -webkit-user-select: none }
 #stage::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 0% 100%, color-mix(in srgb, var(--sp-bg) 92%, transparent) 25%, transparent 75%); pointer-events: none }
@@ -251,6 +252,9 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 #term-out > div { white-space: pre-wrap; overflow-wrap: anywhere }
 #term-out > .pre { white-space: pre; overflow-x: auto }
 #term a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted; cursor: pointer }
+#term a.tdrop { border-bottom: 0 } /* whoami / about: [+] Section, a dashed rule under each */
+#term a.tdrop:hover { text-decoration: underline; text-underline-offset: 3px }
+.tdrop-body { display: block; padding: 2px 0 4px; color: var(--accent2) }
 #term img { height: 140px; margin: 8px 8px 0 0; border: 1px solid var(--line); border-radius: 4px; vertical-align: top }
 #term .trow:hover { background: var(--raise) }
 .tprev { position: fixed; z-index: 12; width: 240px; height: 180px; object-fit: cover; background: var(--shade); border: 1px solid var(--accent); border-radius: 6px; box-shadow: 0 10px 34px var(--shadow); pointer-events: none }
@@ -269,10 +273,9 @@ h3 { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--lin
 .sg:hover, .sg:focus-visible { color: var(--text); text-decoration: underline; text-underline-offset: 4px; outline: none }
 
 @media (max-width: 800px) {
-  .site.dev { display: flex; flex-direction: column; height: auto; min-height: 100dvh; overflow: auto }
-  .site.dev .panel { flex: none }
-  .site.dev #about { order: 2 } /* About me below the terminal */
-  #term { height: 75vh }
+  #theme-icon { top: 9px; left: 12px }
+  #term > header { gap: 18px; min-height: 46px; padding: 8px 12px 8px 52px }
+  #term > header .dim { display: none } /* room for the title */
   #spiral-panel > header { min-height: 46px; padding: 8px 12px }
   #spiral-panel > header { gap: 18px }
   #spiral-panel > header .btn { font-size: 13px }
