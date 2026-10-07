@@ -436,7 +436,6 @@ function toggleDrop(head) {
       k += take; n -= take;
       if (k === text.length) { i++; k = 0; el = null; }
     }
-    body.parentElement.lastChild.scrollIntoView({ block: 'nearest' });
     if (i < segs.length) setTimeout(tick, 16);
   })();
 }
