@@ -377,7 +377,7 @@ function typer(el, alive = () => true) { // empties el now; the function it retu
     })();
   });
 }
-const cmd = c => `<a data-cmd="${esc(c)}">${esc(c)}</a>`;
+const cmd = (c, label = c) => `<a data-cmd="${esc(c)}">${esc(label)}</a>`;
 const pad = (text, n, html = esc(text)) => html + ' '.repeat(Math.max(1, n - String(text).length));
 const ext = l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">[${esc(l.label)}]</a>`;
 const key = name => name.toLowerCase().match(/[a-z0-9]+/)?.[0] ?? '';
@@ -392,7 +392,7 @@ function table(ids, note) {
   const tw = Math.max(8, ...P.map(p => p.title.length)) + 2, yw = Math.max(5, ...P.map(p => String(p.type).length)) + 2;
   print(`<span class="tthumb blank"></span><span class="dim">${pad('PROJECT', tw)}${pad('TYPE', yw)}YEAR</span>\n`
     + ids.map(i => `<span class="trow"${P[i].images?.length ? ` data-img="${thumb(P[i].images[0])}"` : ''}>${tthumb(i)}${pad(P[i].title, tw, `<a data-open="${i}">${esc(P[i].title)}</a>`)}${pad(P[i].type, yw)}${esc(P[i].year)}</span>`).join('\n')
-    + `\n<span class="dim">  ${note} · type a name (or nano &lt;name&gt;) for details, or click a card on the spiral</span>`, 'pre');
+    + `\n<span class="dim">  ${note} · cat &lt;file&gt; (or click a name) to open one</span>`, 'pre');
 }
 // Projects by name: case, spaces and punctuation don't matter. An exact name wins, then one that starts with what was
 // typed, then one containing it.
@@ -406,52 +406,118 @@ function findProject(q) {
   }
   return -1;
 }
-const cmds = {
-  help: () => print([['ls [filter]', 'list projects'], ['stack [skill]', 'projects by skill / tool'], ['nano <name>', 'show a project (or just type its name)'], ['about', 'About me (also: whoami)'], ['contact', 'email and LinkedIn'],
-    ...resume.map(r => [key(r.name), r.name]), ['clear', 'clear the screen']]
-    .map(([c, d]) => '  ' + pad(c, 18, `<a data-cmd="${c.split(' ')[0]}">${esc(c)}</a>`) + `<span class="dim">${esc(d)}</span>`).join('\n'), 'pre'),
-  ls: (q = '') => {
-    const ids = P.map((_, i) => i).filter(i => `${P[i].title} ${P[i].type} ${P[i].tools} ${P[i].year}`.toLowerCase().includes(q.toLowerCase()));
-    table(ids, `${ids.length}/${P.length} shown`);
-  },
-  stack: (q = '') => {
-    if (!q) return print(`<span class="dim">skills used across projects (click one):</span>\n` + stacks.map(([t, ids]) => `${cmd(`stack ${t}`)}<span class="dim">×${ids.length}</span>`).join('   '));
-    const s = q.toLowerCase(), hit = stacks.find(([t]) => t.toLowerCase() === s) || stacks.find(([t]) => t.toLowerCase().includes(s));
-    if (!hit) return print(`no project uses "${esc(q)}" · see ${cmd('stack')}`);
-    table(hit[1], `${hit[1].length} project${hit[1].length > 1 ? 's' : ''} using ${esc(hit[0])}`);
-  },
-  nano: (q = '') => {
-    const p = P[findProject(q)];
-    if (!p) return print(q ? `no project matches "${esc(q)}" · see ${cmd('ls')}` : `usage: nano &lt;project name&gt;, or just type the name · see ${cmd('ls')}`);
-    const im = p.images || [];
-    print(`<b class="hl">── ${esc(p.title)} ${'─'.repeat(Math.max(3, 44 - p.title.length))}</b>
+function showProject(i) {
+  const p = P[i], im = p.images || [];
+  print(`<b class="hl">── ${esc(p.title)} ${'─'.repeat(Math.max(3, 44 - p.title.length))}</b>
 ${esc(p.tagline)}
 <span class="dim">year</span> ${esc(p.year)}   <span class="dim">type</span> ${esc(p.type)}
 <span class="dim">tools</span> ${esc(p.tools)}
 ${lines(p.text).map(l => ` • ${esc(l)}`).join('\n')}
 ${p.writeup ? `\n<span class="dim">── write-up ──</span>\n${esc(p.writeup.trim())}\n` : ''}
 ${links(p.links).map(ext).join(' ')}${im.length ? '\n' + im.map(f => `<img src="${thumb(f)}" alt="">`).join('') : ''}`);
+}
+const printSection = r => print(`<b class="hl">── ${esc(r.name)} ──</b>` + r.items.map(it =>
+  `\n\n<b>${esc(it.title)}</b>${it.org ? ` · ${esc(it.org)}` : ''}${it.when ? `  <span class="dim">${esc(it.when)}</span>` : ''}\n${lines(it.text).map(l => ` • ${esc(l)}`).join('\n')}`).join(''));
+
+// ---- A small Linux-style file system: ~ (/home/visitor) holds projects/ and a text file per About me section.
+const HOME = '/home/visitor', slug = p => `${p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.md`;
+const files = { 'about.txt': () => cmds.whoami(), 'contact.txt': () => cmds.mail(),
+  ...Object.fromEntries(resume.map(r => [`${key(r.name)}.txt`, () => printSection(r)])) };
+let cwd = '~';
+const promptLabel = $('#term-form label');
+function resolve(arg = '') { // a path (relative, ~/…, /home/visitor/…, with . and ..) → { dir } | { file, name } | null
+  const raw = arg.replace(/^\/home\/visitor(?=\/|$)/, '~'), parts = raw.startsWith('~') || cwd === '~' ? [] : ['projects'];
+  for (const seg of raw.replace(/^~\/?/, '').split('/')) {
+    if (seg === '..') parts.pop();
+    else if (seg && seg !== '.') parts.push(seg);
+  }
+  const path = parts.join('/');
+  if (!path) return { dir: '~' };
+  if (path === 'projects') return { dir: '~/projects' };
+  if (files[path]) return { file: files[path], name: path };
+  const i = P.findIndex(p => `projects/${slug(p)}` === path);
+  return i >= 0 ? { file: () => showProject(i), name: path } : null;
+}
+function findFile(arg) { // a path, a file name without its extension, or (anywhere) part of a project's name
+  const r = resolve(arg) ?? resolve(`${arg}.txt`);
+  if (r) return r;
+  const i = norm(arg).length >= 3 ? findProject(arg.replace(/\.md$/i, '')) : -1;
+  return i >= 0 ? { file: () => showProject(i), name: `projects/${slug(P[i])}` } : null;
+}
+const words = a => a.split(/\s+/).filter(x => x && !x.startsWith('-')); // arguments without flags (ls -la, grep -i)
+const manual = [['ls [dir]', 'list files'], ['cd <dir>', 'change directory (projects, .., ~)'], ['pwd', 'print the working directory'],
+  ['cat <file>', 'show a file (also less, more, nano, vim)'], ['tree', 'every file at once'], ['grep <term>', 'projects by skill or keyword'],
+  ['whoami', 'about me'], ['mail', 'email and profiles'], ['history', 'commands so far'], ['echo <text>', 'print text'],
+  ['date', 'the date'], ['uname', 'the system'], ['man <command>', 'what a command does'], ['clear', 'clear the screen (Ctrl+L)'],
+  ['exit', 'back to the Spiral view']];
+const cmds = {
+  help: () => print(manual.map(([c, d]) => '  ' + pad(c, 16, cmd(c.split(' ')[0], c)) + `<span class="dim">${esc(d)}</span>`).join('\n')
+    + `\n\n<span class="dim">  chain with &amp;&amp; · Tab completes · or just type a file or project name</span>`, 'pre'),
+  man: (a = '') => {
+    if (!a) return cmds.help();
+    const m = manual.find(([c]) => c.split(' ')[0] === a.trim());
+    print(m ? `${esc(m[0])}\n    ${esc(m[1])}` : `No manual entry for ${esc(a)}`);
+  },
+  ls: (a = '') => {
+    const target = words(a)[0], r = target ? resolve(target) : { dir: cwd };
+    if (!r) return print(`ls: cannot access '${esc(target)}': No such file or directory`);
+    if (r.file) return print(esc(r.name.split('/').pop()));
+    if (r.dir === '~/projects') return table(P.map((_, i) => i), `${P.length} files`);
+    print([cmd('cd projects && ls', 'projects/'), ...Object.keys(files).map(f => cmd(`cat ${f}`, f))].join('   '));
+  },
+  cd: (a = '') => {
+    const r = resolve(words(a)[0] || '~');
+    if (!r) return print(`cd: no such file or directory: ${esc(a)}`);
+    if (r.file) return print(`cd: not a directory: ${esc(a)}`);
+    cwd = r.dir;
+    promptLabel.textContent = `visitor@portfolio:${cwd}$`;
+  },
+  pwd: () => print(cwd.replace('~', HOME)),
+  cat: (a = '') => {
+    const arg = words(a).join(' ');
+    if (!arg) return print(`usage: cat &lt;file&gt; · see ${cmd('ls')}`);
+    const r = findFile(arg);
+    if (!r) return print(`cat: ${esc(arg)}: No such file or directory`);
+    r.dir ? print(`cat: ${esc(arg)}: Is a directory`) : r.file();
+  },
+  tree: () => {
+    const top = Object.keys(files), pl = P.map(slug);
+    print(`~\n${top.map(f => `├── ${cmd(`cat ${f}`, f)}`).join('\n')}\n└── ${cmd('cd projects && ls', 'projects/')}\n`
+      + pl.map((f, i) => `    ${i === pl.length - 1 ? '└' : '├'}── ${cmd(`cat projects/${f}`, f)}`).join('\n')
+      + `\n\n<span class="dim">1 directory, ${top.length + pl.length} files</span>`, 'pre');
+  },
+  grep: (a = '') => {
+    const q = words(a).join(' ').replace(/^["']|["']$/g, '');
+    if (!q) return print(`usage: grep &lt;term&gt; · skills used across projects:\n` + stacks.map(([t, ids]) => `${cmd(`grep ${t}`, t)}<span class="dim">×${ids.length}</span>`).join('   '));
+    const s = q.toLowerCase(), hit = stacks.find(([t]) => t.toLowerCase() === s);
+    const ids = hit ? hit[1] : P.map((_, i) => i).filter(i => `${P[i].title} ${P[i].tagline} ${P[i].type} ${P[i].tools} ${P[i].text}`.toLowerCase().includes(s));
+    if (!ids.length) return print(`grep: no project matches "${esc(q)}"`);
+    table(ids, `${ids.length} match${ids.length > 1 ? 'es' : ''} for "${esc(q)}"`);
   },
   whoami: () => print(`${banner() || `<b class="hl">${esc(site.name)}</b>\n`}${esc(site.location)}\n${links(site.links).map(ext).join(' ')}\n`
     + aboutSecs.map((s, i) => `<div><a class="tdrop" data-drop="${i}"><span>[+]</span> ${esc(s.name)}${s.count ? ` <span class="dim">${s.count}</span>` : ''}</a>`
       + `<div class="tdrop-body" hidden></div><div class="dim">${'-'.repeat(40)}</div></div>`).join('')),
-  contact: () => print(`${contact.mail ? `email    <a href="${esc(contact.mail.url)}">${esc(contact.mail.url.slice(7))}</a>` : ''}`
-    + `${contact.linkedin ? `\nlinkedin ${ext(contact.linkedin)}` : ''}`),
+  mail: () => print(`${contact.mail ? `email    <a href="${esc(contact.mail.url)}">${esc(contact.mail.url.slice(7))}</a>` : ''}`
+    + `${contact.github ? `\ngithub   ${ext(contact.github)}` : ''}${contact.linkedin ? `\nlinkedin ${ext(contact.linkedin)}` : ''}`),
+  history: () => print(hist.map((h, i) => `${String(i + 1).padStart(4)}  ${esc(h)}`).join('\n'), 'pre'),
+  echo: (a = '') => print(esc(a)),
+  date: () => print(esc(new Date().toString())),
+  uname: (a = '') => print(/-a/.test(a) ? 'PortfolioOS portfolio 1.0.3 web' : 'PortfolioOS'),
+  sudo: () => print('visitor is not in the sudoers file. This incident will be reported.'),
+  exit: () => setDev(false),
   clear: () => { out.innerHTML = ''; },
 };
-for (const r of resume) cmds[key(r.name)] = () => print(`<b class="hl">── ${esc(r.name)} ──</b>` + r.items.map(it =>
-  `\n\n<b>${esc(it.title)}</b>${it.org ? ` · ${esc(it.org)}` : ''}${it.when ? `  <span class="dim">${esc(it.when)}</span>` : ''}\n${lines(it.text).map(l => ` • ${esc(l)}`).join('\n')}`).join(''));
-cmds.about = cmds.whoami; // About me, in the terminal
-Object.assign(cmds, { projects: cmds.ls, cls: cmds.clear });
+Object.assign(cmds, { less: cmds.cat, more: cmds.cat, nano: cmds.cat, vim: cmds.cat, vi: cmds.cat, ll: cmds.ls, logout: cmds.exit });
 
 // Suggestions under the prompt: shown on focus/click/typing, filtered by what's typed, click (or Tab) to use.
 const sug = $('#suggest');
 function suggest() {
   const q = tin.value.trim().toLowerCase();
   const groups = [
-    ['Try', [['about', 'about me'], ['ls', 'all projects'], ['stack', 'by skill'], ...resume.map(r => [key(r.name), r.name]), ['help', 'every command']], 8],
-    ['Open', P.map(p => [`nano ${p.title.toLowerCase()}`, p.type]), 5],
-    ['By skill', stacks.map(([t, ids]) => [`stack ${t}`, `×${ids.length}`]), 8],
+    ['Try', [['ls', 'list files'], ['cd projects && ls', 'the projects'], ['cat about.txt', 'about me'], ['tree', 'every file'], ['grep', 'by skill'], ['help', 'every command']], 8],
+    ['Files', Object.keys(files).map(f => [`cat ${f}`, '']), 0],
+    ['Open', P.map(p => [`cat projects/${slug(p)}`, p.title]), 5],
+    ['By skill', stacks.map(([t, ids]) => [`grep ${t}`, `×${ids.length}`]), 8],
   ].map(([name, items, n]) => [name, items.filter(([c, l]) => !q || `${c} ${l}`.toLowerCase().includes(q)).slice(0, q ? 6 : n)])
     .filter(([, items]) => items.length);
   sug.innerHTML = groups.map(([name, items]) => `<div class="sg-row"><span class="dim">${name}</span>${items.map(([c, l]) =>
@@ -464,29 +530,45 @@ tin.addEventListener('click', suggest);
 tin.addEventListener('input', suggest);
 tin.addEventListener('blur', () => { sug.hidden = true; });
 sug.onmousedown = e => e.preventDefault(); // keep focus in the input so clicking a suggestion doesn't blur it away first
+function complete(v) { // Tab, as in a shell: finish the last word (a command first, then file names from here)
+  const [, before, word] = v.match(/^(.*?)(\S*)$/);
+  const names = !before.trim() ? Object.keys(cmds)
+    : cwd === '~' ? ['projects/', ...Object.keys(files), ...P.map(p => `projects/${slug(p)}`)] : P.map(slug);
+  const hits = names.filter(n => n.startsWith(word));
+  if (!hits.length) return v;
+  let common = hits[0];
+  for (const h of hits) while (!h.startsWith(common)) common = common.slice(0, -1);
+  return before + common + (hits.length === 1 && !common.endsWith('/') ? ' ' : '');
+}
 
 const hist = [];
 let hp = 0;
 function run(line) {
   sug.hidden = true;
-  print(`<span class="hl">visitor@portfolio</span>:~$ ${esc(line)}`);
+  print(`<span class="hl">visitor@portfolio</span>:${cwd}$ ${esc(line)}`);
   const echo = out.lastElementChild;
   line = line.trim();
   if (!line) return;
   hist.push(line);
   hp = hist.length;
-  const [c, ...a] = line.split(/\s+/), name = c.toLowerCase();
-  if (Object.hasOwn(cmds, name)) cmds[name](a.join(' '));
-  else if (norm(line).length >= 3 && findProject(line) >= 0) cmds.nano(line); // just a project's name
-  else print(`command not found: ${esc(c)} · type ${cmd('help')}`);
+  for (const part of line.split('&&')) exec(part.trim());
   // One scroll, now, just far enough to show the new output (never past the command line); none while it types.
   const view = tbody.getBoundingClientRect(), over = out.getBoundingClientRect().bottom + 60 - view.bottom;
   if (over > 0) tbody.scrollTop += Math.min(over, echo.getBoundingClientRect().top - view.top - 8);
 }
+function exec(line) {
+  if (!line) return;
+  const [c, ...a] = line.split(/\s+/), name = c.toLowerCase();
+  if (Object.hasOwn(cmds, name)) return cmds[name](a.join(' '));
+  const r = norm(line).length >= 3 && findFile(line); // just a file or project name opens it; a folder name goes there
+  if (r?.file) r.file();
+  else if (r?.dir) cmds.cd(line);
+  else print(`${esc(c)}: command not found · type ${cmd('help')}`);
+}
 // Boot: the ASCII name (or the plain name) and the hints.
 const bootLines = [`<span class="dim">PORTFOLIO OS v1.0.3 · link established · latency 1ms · ${P.length} projects · ${resume.length} dossiers</span>`,
   banner() || `<b class="hl">${esc(site.name)}</b>`,
-  `type ${cmd('help')} or try ${cmd('about')} ${cmd('ls')} ${cmd('stack')} ${resume.slice(0, 2).map(r => cmd(key(r.name))).join(' ')} · click the prompt for suggestions`, ''];
+  `type ${cmd('help')} or try ${cmd('ls')} ${cmd('cd projects && ls', 'cd projects')} ${cmd('cat about.txt')} ${cmd('tree')} · click the prompt for suggestions`, ''];
 bootLines.forEach((l, i) => setTimeout(() => print(l), i * 110));
 // About me sections for whoami / about. Opening one types it in and grows downward; the view stays where it is.
 const entryText = it => `<b>${esc(it.title)}</b>${it.org ? ` · ${esc(it.org)}` : ''}${it.when ? `  <span class="dim">${esc(it.when)}</span>` : ''}`
@@ -523,7 +605,14 @@ function backspace(el, alive) { // closing a section erases its text from the en
 $('#term-form').onsubmit = e => { e.preventDefault(); run(tin.value); tin.value = ''; };
 tin.onkeydown = e => {
   const first = !sug.hidden && sug.querySelector('[data-cmd]');
-  if (e.key === 'Tab' && first) { e.preventDefault(); tin.value = first.dataset.cmd; return suggest(); }
+  if (e.key === 'Tab') { // complete the word like a shell; failing that, take the first suggestion
+    e.preventDefault();
+    const done = complete(tin.value);
+    if (done !== tin.value) tin.value = done;
+    else if (first) tin.value = first.dataset.cmd;
+    return suggest();
+  }
+  if (e.ctrlKey && e.key.toLowerCase() === 'l') { e.preventDefault(); return cmds.clear(); }
   if (e.key === 'Escape') sug.hidden = true;
   if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
   e.preventDefault();
@@ -544,7 +633,7 @@ async function typeRun(line) {
   run(line);
 }
 
-// Hovering a project row in ls/stack pops a large preview of its cover beside the row (fixed, so nothing gets clipped).
+// Hovering a project row in ls/grep pops a large preview of its cover beside the row (fixed, so nothing gets clipped).
 const tprev = Object.assign(document.createElement('img'), { className: 'tprev', alt: '', hidden: true });
 document.body.append(tprev);
 out.addEventListener('pointerover', e => {
@@ -574,7 +663,7 @@ document.addEventListener('click', e => {
   else if (t.id === 'about-close') setAbout(false);
   else if (t.id === 'theme-icon') setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
   else if (d.sheet) launch(+d.sheet);
-  else if (d.open) typeRun(`nano ${P[d.open].title.toLowerCase()}`);
+  else if (d.open) typeRun(`cat ${cwd === '~/projects' ? '' : 'projects/'}${slug(P[d.open])}`);
   else if (d.drop) toggleDrop(t);
   else if (d.cmd) typeRun(d.cmd);
   else if (d.v) view(+d.v);
